@@ -539,3 +539,8 @@ body { @apply bg-background text-foreground; font-family:'Space Grotesk',sans-se
 .page-holo-label:hover { transform:none; box-shadow:inset 3px 0 #ff63cf,0 0 13px rgba(255,63,201,.25) !important; }
 .page-holo-label--live { background:linear-gradient(90deg,rgba(100,11,73,.55),rgba(34,15,52,.85)) !important; box-shadow:inset 3px 0 #ff58ce,0 0 13px rgba(255,44,194,.23) !important; animation:none; }
 .page-holo-label--live::before { box-shadow:0 0 7px rgba(255,67,202,.55); }
+
+/* COD ROOM SIGNAL — same pink neon language at list badge and room header */
+.cod-room-sign { position:relative; border-color:#ffb8ec !important; background:#e91592 !important; color:#fff !important; text-shadow:0 0 3px #fff,0 0 8px #ffb7e9; box-shadow:0 0 4px #fff,0 0 10px #ff8ddd,0 0 22px rgba(255,24,174,.72) !important; }
+.cod-room-sign::after { content:""; position:absolute; inset:-3px -4px; border:1px solid rgba(255,188,235,.82); border-radius:50%; box-shadow:0 0 7px rgba(255,67,202,.85); pointer-events:none; }
+.cod-room-header { border-color:#ffb8ec !important; background:rgba(226,18,142,.28) !important; color:#fff !important; text-shadow:0 0 3px #fff,0 0 10px #ff8ddd; box-shadow:0 0 6px #ff70d1,0 0 18px rgba(255,25,180,.5); }
