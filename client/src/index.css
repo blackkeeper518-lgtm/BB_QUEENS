@@ -77,6 +77,10 @@ body { @apply bg-background text-foreground; font-family:'Space Grotesk',sans-se
 .page-holo-label > * { position:relative; z-index:1; text-shadow:0 0 2px #fff,0 0 7px #fff,0 0 15px #ffb9ed,0 0 24px #ff25b7; }
 .page-holo-label:hover { transform:translateY(-2px) rotate(-.4deg); filter:brightness(1.18) saturate(1.18); box-shadow:inset 0 0 16px rgba(255,168,235,.55),0 0 12px #ff72d5,0 0 34px rgba(255,15,157,.7),0 12px 24px rgba(45,0,30,.46); }
 .page-holo-label--live { animation:neon-sign-flicker 2.7s ease-in-out infinite; }
+.cod-neon-sign { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:19px; padding:0 7px; border:1px solid rgba(255,237,252,.95); border-radius:48% 18% 46% 22% / 35% 30% 38% 25%; background:#f01898; color:#fff !important; font:700 9px/1 'IBM Plex Mono',monospace; letter-spacing:.08em; text-shadow:0 0 3px #fff,0 0 8px #fff,0 0 14px #ffb5e9; box-shadow:0 0 4px #fff,0 0 10px #ffb5e9,0 0 22px rgba(255,22,171,.86),inset 0 0 8px rgba(255,255,255,.4); animation:cod-neon-flicker 1.9s ease-in-out infinite; }
+.cod-neon-sign::before { content:""; position:absolute; inset:-3px -4px; border:1px solid rgba(255,194,237,.8); border-radius:50%; box-shadow:0 0 7px rgba(255,87,205,.9); pointer-events:none; }
+@keyframes cod-neon-flicker { 0%,100% { opacity:1; filter:brightness(1); } 7% { opacity:.78; filter:brightness(.88); } 10% { opacity:1; filter:brightness(1.22); } 54% { opacity:.94; } 58% { opacity:1; filter:brightness(1.15); } }
+
 .page-holo-label--live::before { box-shadow:0 0 5px #fff,0 0 14px #ffd4f2,0 0 34px #ff1cad,0 0 54px rgba(255,0,153,.62); }
 @keyframes neon-sign-sheen { 0%,65% { background-position:180% 0; opacity:.15; } 78%,90% { background-position:-20% 0; opacity:.65; } 100% { background-position:-40% 0; opacity:.15; } }
 @keyframes neon-sign-flicker { 0%,100% { filter:brightness(1); } 8% { filter:brightness(1.22); } 11% { filter:brightness(.88); } 14% { filter:brightness(1.14); } 55% { filter:brightness(1.08); } 57% { filter:brightness(.94); } 60% { filter:brightness(1.18); } }
