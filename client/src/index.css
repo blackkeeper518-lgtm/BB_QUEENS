@@ -557,3 +557,11 @@ body { @apply bg-background text-foreground; font-family:'Space Grotesk',sans-se
 .telegram-green-frame { position:relative; isolation:isolate; }
 .telegram-green-frame::before { content:""; position:fixed; z-index:-1; inset:8px; pointer-events:none; border:1px solid rgba(93,255,204,.5); border-radius:24px; box-shadow:0 0 8px rgba(93,255,204,.75),0 0 26px rgba(31,255,189,.32),0 0 70px rgba(31,255,189,.18),inset 0 0 38px rgba(31,255,189,.08); }
 .telegram-green-frame::after { content:""; position:fixed; z-index:-1; inset:0; pointer-events:none; background:radial-gradient(ellipse at top,rgba(75,255,202,.08),transparent 45%),radial-gradient(ellipse at bottom,rgba(75,255,202,.08),transparent 50%); }
+
+/* RANKING COMEDY MODE — champion shimmer, last-place ambulance alert */
+.cod-rank-winner { color:#fff6fd; font-weight:700; text-shadow:0 0 3px #fff,0 0 8px #ffb8ed,0 0 18px #ff4fc8; animation:cod-winner-sparkle 1.7s ease-in-out infinite; }
+.cod-rank-winner b { color:#ffb4e8; }
+.cod-rank-emergency { color:#ffe9f5; border-radius:4px; padding:2px 5px; background:linear-gradient(90deg,rgba(255,35,101,.24),rgba(255,255,255,.14),rgba(255,35,101,.24)); text-shadow:0 0 3px #fff,0 0 8px #ff426e; animation:cod-ambulance 1.05s steps(1,end) infinite; }
+.cod-rank-emergency b { color:#ff577d; }
+@keyframes cod-winner-sparkle { 0%,100% { filter:brightness(1); transform:translateY(0); } 38% { filter:brightness(1.38); } 46% { filter:brightness(.96); } 52% { filter:brightness(1.22); } 68% { filter:brightness(1.08); } }
+@keyframes cod-ambulance { 0%,48% { color:#fff5fa; background:rgba(255,36,100,.32); box-shadow:0 0 7px rgba(255,36,100,.72); } 49%,100% { color:#fff; background:rgba(255,255,255,.28); box-shadow:0 0 8px rgba(255,255,255,.85); } }
