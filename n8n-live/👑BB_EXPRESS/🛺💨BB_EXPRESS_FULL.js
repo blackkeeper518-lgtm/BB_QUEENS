@@ -5,11 +5,12 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -11408,
+        -12944,
         6144
       ],
       "id": "b94576bd-7399-4b0f-bbb8-c9bb4883bc1a",
-      "name": "🎱🍁#DARKSIDEMARKETING"
+      "name": "🎱🍁#DARKSIDEMARKETING",
+      "disabled": true
     },
     {
       "parameters": {
@@ -24,7 +25,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -12976,
+        -14736,
         5712
       ],
       "id": "0612a60f-86be-4e60-a968-b28369e56538",
@@ -34,7 +35,8 @@
           "id": "M57HMGs21S6xg28P",
           "name": "🌀SINGULARITY_X_ZERO"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -50,11 +52,12 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -13200,
+        -14960,
         5712
       ],
       "id": "558526e1-e309-4081-b62b-3b147c07f241",
-      "name": "Schedule Trigger4"
+      "name": "Schedule Trigger4",
+      "disabled": true
     },
     {
       "parameters": {
@@ -106,7 +109,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -11408,
+        -12944,
         5632
       ],
       "id": "b1b97e48-0653-4556-a794-745b5447c994",
@@ -117,7 +120,8 @@
           "id": "M57HMGs21S6xg28P",
           "name": "🌀SINGULARITY_X_ZERO"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -169,7 +173,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -11632,
+        -13168,
         5952
       ],
       "id": "6b9ebcdc-187a-4bcb-8630-ad439470d4da",
@@ -180,7 +184,8 @@
           "id": "M57HMGs21S6xg28P",
           "name": "🌀SINGULARITY_X_ZERO"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -232,7 +237,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -11632,
+        -13168,
         6144
       ],
       "id": "d8e439e9-0843-4eac-a6eb-ac31000f2e88",
@@ -243,7 +248,8 @@
           "id": "M57HMGs21S6xg28P",
           "name": "🌀SINGULARITY_X_ZERO"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -295,7 +301,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -11632,
+        -13168,
         6336
       ],
       "id": "6b122f1a-76e4-4043-8a1a-1b621e64d4d3",
@@ -306,7 +312,8 @@
           "id": "M57HMGs21S6xg28P",
           "name": "🌀SINGULARITY_X_ZERO"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -368,11 +375,12 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -12080,
+        -13616,
         5344
       ],
       "id": "d999dbb5-bfdb-4512-9642-c11ac9422b6f",
-      "name": "Switch2"
+      "name": "Switch2",
+      "disabled": true
     },
     {
       "parameters": {
@@ -424,7 +432,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -11856,
+        -13392,
         5248
       ],
       "id": "a34c8765-9c38-457d-81fe-7fb5a2ac1fec",
@@ -435,7 +443,8 @@
           "id": "M57HMGs21S6xg28P",
           "name": "🌀SINGULARITY_X_ZERO"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -487,7 +496,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -11856,
+        -13392,
         5440
       ],
       "id": "c2dfdece-2d2c-4e27-861b-aca570c33f4d",
@@ -498,18 +507,20 @@
           "id": "M57HMGs21S6xg28P",
           "name": "🌀SINGULARITY_X_ZERO"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -11632,
+        -13168,
         5344
       ],
       "id": "6ee6636c-3983-4431-991b-a50d3de012da",
-      "name": "🎱🍁#DARKSIDEMARKETING1"
+      "name": "🎱🍁#DARKSIDEMARKETING1",
+      "disabled": true
     },
     {
       "parameters": {
@@ -518,11 +529,12 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -12528,
+        -14064,
         5712
       ],
       "id": "45f8bf41-dd92-474c-a995-45a663eacf40",
-      "name": "BILL HEADER INJECTOR"
+      "name": "BILL HEADER INJECTOR",
+      "disabled": true
     },
     {
       "parameters": {
@@ -634,11 +646,12 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -12080,
+        -13616,
         6016
       ],
       "id": "bf707e91-83bd-4ea4-8f26-4e9cf5847637",
-      "name": "⭐⭐👑⭐⭐"
+      "name": "⭐⭐👑⭐⭐",
+      "disabled": true
     },
     {
       "parameters": {
@@ -647,11 +660,12 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -12752,
+        -14512,
         5712
       ],
       "id": "ef76c5ad-a83c-4a46-a857-d6b655735a89",
-      "name": "🧿END_DATETIME_BKK"
+      "name": "🧿END_DATETIME_BKK",
+      "disabled": true
     },
     {
       "parameters": {
@@ -661,11 +675,12 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -11856,
+        -13392,
         5712
       ],
       "id": "14c7d457-23e2-4e28-821e-6cbb623511ac",
-      "name": "Loop Over Items"
+      "name": "Loop Over Items",
+      "disabled": true
     },
     {
       "parameters": {
@@ -728,11 +743,12 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -12304,
+        -13840,
         5712
       ],
       "id": "fa419897-d5d9-44b8-b134-53541f104eea",
-      "name": "⭐⭐🍁⭐⭐"
+      "name": "⭐⭐🍁⭐⭐",
+      "disabled": true
     },
     {
       "parameters": {
@@ -746,7 +762,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -11856,
+        -13392,
         6336
       ],
       "id": "8397a601-f704-45b4-aab7-7ad9724d70f9",
@@ -757,7 +773,8 @@
           "id": "byg0vHxo5ZIap74c",
           "name": "เทส"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -771,7 +788,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -11856,
+        -13392,
         6144
       ],
       "id": "68c1387c-d1a4-4a5c-97c1-4297d055afe2",
@@ -782,7 +799,8 @@
           "id": "e60ukliyR12WX6Pe",
           "name": "ฺฺBBBBB"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -796,7 +814,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -11856,
+        -13392,
         5952
       ],
       "id": "a4f0aa14-caf4-47e5-ac3f-8e416dfba464",
@@ -807,7 +825,8 @@
           "id": "e60ukliyR12WX6Pe",
           "name": "ฺฺBBBBB"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -821,7 +840,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -11632,
+        -13168,
         5632
       ],
       "id": "735570e0-7b77-4ba5-a0c9-df4ccb62deb2",
@@ -832,19 +851,35 @@
           "id": "e60ukliyR12WX6Pe",
           "name": "ฺฺBBBBB"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -11184,
+        -12720,
         5712
       ],
       "id": "87bb4430-5c0d-425f-a3aa-0fb03aff9373",
       "name": "Wait",
-      "webhookId": "39166bf4-cbfb-4e70-80f9-35db4e024436"
+      "webhookId": "39166bf4-cbfb-4e70-80f9-35db4e024436",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node — Delivery Province Gate\n// Mode: Run Once for All Items\n// วางก่อน node ที่ส่งออเดอร์เข้ากลุ่ม Telegram ปกติ\n// ผลลัพธ์: _delivery_gate.status = ALLOW | BLOCK | REVIEW\n\nconst RESTRICTED_AREAS = [\n  { province: \"นครราชสีมา\", postcode: \"30000\" },\n  { province: \"บุรีรัมย์\", postcode: \"31000\" },\n  { province: \"สุรินทร์\", postcode: \"32000\" },\n  { province: \"ศรีสะเกษ\", postcode: \"33000\" },\n  { province: \"อุบลราชธานี\", postcode: \"34000\" },\n  { province: \"ยโสธร\", postcode: \"35000\" },\n  { province: \"ชัยภูมิ\", postcode: \"36000\" },\n  { province: \"อำนาจเจริญ\", postcode: \"37000\" },\n  { province: \"บึงกาฬ\", postcode: \"38000\" },\n  { province: \"หนองบัวลำภู\", postcode: \"39000\" },\n  { province: \"ขอนแก่น\", postcode: \"40000\" },\n  { province: \"อุดรธานี\", postcode: \"41000\" },\n  { province: \"เลย\", postcode: \"42000\" },\n  { province: \"หนองคาย\", postcode: \"43000\" },\n  { province: \"มหาสารคาม\", postcode: \"44000\" },\n  { province: \"ร้อยเอ็ด\", postcode: \"45000\" },\n  { province: \"กาฬสินธุ์\", postcode: \"46000\" },\n  { province: \"สกลนคร\", postcode: \"47000\" },\n  { province: \"นครพนม\", postcode: \"48000\" },\n  { province: \"มุกดาหาร\", postcode: \"49000\" },\n].map((area) => ({ ...area, prefix: area.postcode.slice(0, 2) }));\n\nconst BILLING_HINT = /billing|invoice|bill_to|ใบกำกับ|ที่อยู่ใบเสร็จ|ที่อยู่ออกบิล/i;\nconst SHIPPING_HINT = /shipping|ship_to|delivery|deliver_to|recipient|receiver|consignee|destination|ปลายทาง|จัดส่ง|ผู้รับ/i;\nconst ADDRESS_HINT = /address|province|province_name|state|region|city|district|subdistrict|tambon|amphoe|postcode|postal|zip|ที่อยู่|จังหวัด|อำเภอ|ตำบล|รหัสไปรษณีย์/i;\nconst POSTCODE_KEY = /postcode|postal|zip|รหัสไปรษณีย์/i;\nconst PROVINCE_KEY = /province|จังหวัด/i;\nconst ORDER_REFERENCE_KEYS = [\"order_number\", \"order_no\", \"order_id\", \"chat_link_key\", \"invoice_number\", \"tracking_number\", \"id\"];\n\nfunction normalizeText(value) {\n  return String(value ?? \"\")\n    .normalize(\"NFC\")\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, \"\")\n    .replace(/\\s+/g, \"\")\n    .replace(/^จังหวัด/, \"\");\n}\n\nfunction collectAddressFields(value, path = [], out = [], depth = 0) {\n  if (value == null || depth > 7) return out;\n  if (typeof value === \"string\" || typeof value === \"number\") {\n    const text = String(value).trim();\n    const pathText = path.join(\".\");\n    if (text && ADDRESS_HINT.test(pathText) && !BILLING_HINT.test(pathText)) {\n      out.push({ path: pathText, text, shipping: SHIPPING_HINT.test(pathText) });\n    }\n    return out;\n  }\n  if (Array.isArray(value)) {\n    value.forEach((entry, index) => collectAddressFields(entry, [...path, String(index)], out, depth + 1));\n    return out;\n  }\n  if (typeof value === \"object\") {\n    for (const [key, child] of Object.entries(value)) {\n      collectAddressFields(child, [...path, key], out, depth + 1);\n    }\n  }\n  return out;\n}\n\nfunction collectPostcodes(fields) {\n  const matches = [];\n  for (const field of fields) {\n    const directPostcodeField = POSTCODE_KEY.test(field.path);\n    // รหัสไปรษณีย์ในช่องเฉพาะ หรือเลข 5 หลักที่อยู่ในฟิลด์ address เท่านั้น\n    // ไม่สแกนเบอร์โทร/เลขออเดอร์จากทั้ง JSON\n    if (!directPostcodeField && !/address|ที่อยู่|จัดส่ง|ปลายทาง/i.test(field.path)) continue;\n    for (const match of field.text.matchAll(/(?:^|\\D)(\\d{5})(?!\\d)/g)) {\n      matches.push(match[1]);\n    }\n  }\n  return [...new Set(matches)];\n}\n\nfunction findOrderReference(json) {\n  const wanted = new Set(ORDER_REFERENCE_KEYS);\n  const queue = [{ value: json, depth: 0 }];\n  while (queue.length) {\n    const { value, depth } = queue.shift();\n    if (!value || typeof value !== \"object\" || depth > 5) continue;\n    for (const [key, child] of Object.entries(value)) {\n      if (wanted.has(key.toLowerCase()) && (typeof child === \"string\" || typeof child === \"number\") && String(child).trim()) {\n        return String(child).trim().replace(/[\\r\\n\\t]+/g, \" \").slice(0, 80);\n      }\n      if (child && typeof child === \"object\") queue.push({ value: child, depth: depth + 1 });\n    }\n  }\n  return \"ไม่พบเลขอ้างอิง\";\n}\n\nfunction inspectDestination(json) {\n  const allAddressFields = collectAddressFields(json);\n  const shippingFields = allAddressFields.filter((field) => field.shipping);\n  // ถ้ามีฟิลด์ที่ระบุผู้รับ/ปลายทาง/จัดส่ง ให้ใช้เฉพาะชุดนั้น ไม่เอาที่อยู่ออกบิลมาปะปน\n  const fields = shippingFields.length ? shippingFields : allAddressFields;\n  const normalizedAddress = fields.map((field) => normalizeText(field.text)).join(\"|\");\n\n  const provinceArea = RESTRICTED_AREAS.find((area) => normalizedAddress.includes(normalizeText(area.province)));\n  const postcodes = collectPostcodes(fields);\n  const postcodeArea = RESTRICTED_AREAS.find((area) => postcodes.some((postcode) => postcode.startsWith(area.prefix)));\n  const matchedArea = provinceArea || postcodeArea;\n  const explicitProvincePresent = fields.some((field) => PROVINCE_KEY.test(field.path) && field.text.trim());\n  const destinationEvidence = fields.length > 0;\n  const enoughToDecide = Boolean(provinceArea || postcodes.length || explicitProvincePresent);\n\n  return {\n    area: matchedArea,\n    matchedBy: provinceArea ? \"province\" : postcodeArea ? \"postcode_prefix\" : \"\",\n    postcodes,\n    destinationEvidence,\n    enoughToDecide,\n  };\n}\n\nreturn $input.all().map((item, index) => {\n  const json = item.json ?? {};\n  const destination = inspectDestination(json);\n  const status = destination.area ? \"BLOCK\" : destination.enoughToDecide ? \"ALLOW\" : \"REVIEW\";\n  const orderReference = findOrderReference(json);\n  const province = destination.area?.province ?? \"ยังระบุจังหวัดไม่ได้\";\n  const postcodeText = destination.postcodes.length ? destination.postcodes.join(\", \") : \"ไม่พบ\";\n\n  let telegramWarning = \"\";\n  if (status === \"BLOCK\") {\n    telegramWarning = [\n      \"⛔ งดส่งออเดอร์ปลายทางพื้นที่เสี่ยง\",\n      `อ้างอิง: ${orderReference}`,\n      `จังหวัด: ${province}`,\n      `รหัสไปรษณีย์ที่พบ: ${postcodeText}`,\n      \"รายการนี้ถูกแยกออกจากเส้นทางส่งปกติแล้ว โปรดตรวจนโยบาย/ยืนยันก่อนดำเนินการต่อ\",\n    ].join(\"\\n\");\n  } else if (status === \"REVIEW\") {\n    telegramWarning = [\n      \"⚠️ พักตรวจที่อยู่ก่อนส่งออเดอร์\",\n      `อ้างอิง: ${orderReference}`,\n      \"หาเขตปลายทาง/จังหวัด/รหัสไปรษณีย์จากข้อมูลที่เข้า node ไม่ได้ครบ\",\n      \"รายการนี้ถูกแยกออกจากเส้นทางส่งปกติ เพื่อไม่ให้ที่อยู่คลุมเครือผ่านอัตโนมัติ\",\n    ].join(\"\\n\");\n  }\n\n  return {\n    json: {\n      ...json,\n      _delivery_gate: {\n        status,\n        restricted: status === \"BLOCK\",\n        province: destination.area?.province ?? null,\n        matchedBy: destination.matchedBy || null,\n        postcodes: destination.postcodes,\n        orderReference,\n        telegramWarning,\n      },\n    },\n    ...(item.binary ? { binary: item.binary } : {}),\n    pairedItem: { item: index },\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -14288,
+        5712
+      ],
+      "id": "87a9c822-fb85-49f3-ae76-63329f611205",
+      "name": "🧿END_DATETIME_BKK1",
+      "disabled": true
     }
   ],
   "connections": {
@@ -1001,7 +1036,7 @@
       "main": [
         [
           {
-            "node": "BILL HEADER INJECTOR",
+            "node": "🧿END_DATETIME_BKK1",
             "type": "main",
             "index": 0
           }
@@ -1087,6 +1122,17 @@
         [
           {
             "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧿END_DATETIME_BKK1": {
+      "main": [
+        [
+          {
+            "node": "BILL HEADER INJECTOR",
             "type": "main",
             "index": 0
           }
