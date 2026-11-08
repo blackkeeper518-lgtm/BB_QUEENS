@@ -123,7 +123,16 @@ function chatOccurredAt(row: Record<string, unknown>) {
 }
 
 function isPageChatRow(row: Record<string, unknown>) {
-  return /page|admin|แอดมิน|เพจ/i.test(String(row.speaker_type ?? row.speaker ?? row.sender_type ?? ""));
+  const role = String(row.speaker_type ?? row.speaker ?? row.sender_type ?? "");
+  const direction = String(row.direction ?? "").toLowerCase();
+  const side = String(row.side ?? "").toLowerCase();
+  const pageId = String(row.page_id ?? row.pageId ?? "");
+  const senderId = String(row.sender_id ?? row.senderId ?? "");
+  return /page|admin|แอดมิน|เพจ/i.test(role)
+    || direction === "outbound"
+    || side === "right"
+    || row.is_sent === true
+    || Boolean(pageId && senderId && pageId === senderId);
 }
 
 export async function fetchChatThreadsFromServer() {
@@ -176,13 +185,15 @@ export async function fetchChatThreadsFromServer() {
 }
 
 export async function fetchChatMessagesFromServer(pageId: string, threadId: string) {
+  const pageFilter = encodeURIComponent(pageId);
+  const threadFilter = encodeURIComponent(threadId);
   const [customers, pages] = await Promise.all([
-    supabaseGet<Record<string, unknown>[]>("chat_customer_messages?select=*&order=occurred_at.asc&limit=10000", "chat"),
-    supabaseGet<Record<string, unknown>[]>("chat_page_messages?select=*&order=occurred_at.asc&limit=10000", "chat"),
+    supabaseGet<Record<string, unknown>[]>(`chat_customer_messages?select=*&page_id=eq.${pageFilter}&thread_id=eq.${threadFilter}&order=occurred_at.desc&limit=15`, "chat"),
+    supabaseGet<Record<string, unknown>[]>(`chat_page_messages?select=*&page_id=eq.${pageFilter}&thread_id=eq.${threadFilter}&order=occurred_at.desc&limit=15`, "chat"),
   ]);
   return [...customers, ...pages]
-    .filter(row => String(row.page_id ?? row.pageId ?? "") === pageId && String(row.thread_id ?? row.threadId ?? row.conversation_key ?? row.conversation_id ?? "") === threadId)
     .sort((a, b) => new Date(chatOccurredAt(a) ?? 0).getTime() - new Date(chatOccurredAt(b) ?? 0).getTime())
+    .slice(-15)
     .map(row => {
       const page = isPageChatRow(row);
       return {
