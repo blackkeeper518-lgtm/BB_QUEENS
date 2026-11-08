@@ -15,18 +15,23 @@ async function pageToken(pageId: string, portalKey?: string) {
   const supabaseUrl = lane?.url?.trim().replace(/\/$/, "");
   const serviceRoleKey = lane?.key?.trim();
   if (supabaseUrl && serviceRoleKey) {
-    const params = new URLSearchParams({ select: "page_id,page_name,access_token,portal_key", page_id: `eq.${pageId}`, limit: "1" });
-    if (portalKey?.trim()) params.set("portal_key", `eq.${portalKey.trim()}`);
-    const response = await fetch(`${supabaseUrl}/rest/v1/page_tokens_vault?${params}`, { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } });
-    if (response.ok) {
-      const rows = await response.json() as Array<Record<string, unknown>>;
-      const row = rows[0];
-      if (row) {
-        const token = row.page_access_token ?? row.access_token ?? row.pageAccessToken ?? row.token;
-        if (typeof token === "string" && token.trim()) return token.trim();
+    const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` };
+    const queries = [portalKey?.trim(), undefined];
+    for (const candidatePortalKey of queries) {
+      const params = new URLSearchParams({ select: "page_id,page_name,access_token,portal_key", page_id: `eq.${pageId}`, limit: "1" });
+      if (candidatePortalKey) params.set("portal_key", `eq.${candidatePortalKey}`);
+      const response = await fetch(`${supabaseUrl}/rest/v1/page_tokens_vault?${params}`, { headers });
+      if (response.ok) {
+        const rows = await response.json() as Array<Record<string, unknown>>;
+        const row = rows[0];
+        if (row) {
+          const token = row.page_access_token ?? row.access_token ?? row.pageAccessToken ?? row.token;
+          if (typeof token === "string" && token.trim()) return token.trim();
+        }
+        if (!candidatePortalKey) break;
+      } else if (response.status !== 404) {
+        throw new Error(`Supabase page_tokens_vault returned HTTP ${response.status}`);
       }
-    } else if (response.status !== 404) {
-      throw new Error(`Supabase page_tokens_vault returned HTTP ${response.status}`);
     }
   }
   const configured = process.env.META_PAGES_JSON;

@@ -8,6 +8,15 @@ import * as db from "./db";
 
 const ownerId = (ctx: { user: { id: number } | null }) => ctx.user?.id ?? 0;
 const kind = z.enum(["code", "sql", "workflow", "document", "config", "other"]);
+async function persistOutgoingChatBestEffort(input: Parameters<typeof recordOutgoingChatMessage>[0]) {
+  try {
+    await recordOutgoingChatMessage(input);
+  } catch (error) {
+    // Meta already accepted the message; a secondary audit failure must not
+    // falsely report that the customer reply failed.
+    console.error("[chat] outgoing write-back failed after Meta accepted message", error);
+  }
+}
 
 export const appRouter = router({
   health: publicProcedure.query(() => ({ ok: true, service: "drakside-system", time: new Date().toISOString() })),
@@ -20,7 +29,7 @@ export const appRouter = router({
   chat: router({
     sendReply: publicProcedure.input(z.object({ pageId: z.string(), pageName: z.string().optional(), portalKey: z.string().optional(), chatLinkKey: z.string().optional(), threadId: z.string(), recipientId: z.string(), text: z.string().optional(), imageUrl: z.string().optional(), stickerId: z.string().optional() })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
-      await recordOutgoingChatMessage({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
+      await persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
       await db.saveChatMessage({ pageId: input.pageId, threadId: input.threadId, senderId: input.pageId, senderType: "page", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id, providerMessageId: result.message_id });
       return result;
     }),
@@ -44,7 +53,7 @@ export const appRouter = router({
       text: z.string().trim().min(1).max(2000),
     })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
-      await recordOutgoingChatMessage({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
+      await persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
       await db.saveChatMessage({
         pageId: input.pageId,
         threadId: input.threadId,

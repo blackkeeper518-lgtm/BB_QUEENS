@@ -629,13 +629,16 @@ export async function readChatThreads() {
     const threadId = String(row._thread ?? row.threadId ?? row.conversation_id ?? "").trim();
     const key = `${pageId}:${threadId}`;
     const current = map.get(key) ?? {
-      key, pageId, threadId, customerId: row.customer_id || row.recipient_id || row.customerId || row.sender_id, pageName: row.page_name || "ไม่ระบุเพจ",
+      key, pageId, threadId, portalKey: row.portal_key || row.portalKey || null, chatLinkKey: row.chat_link_key || row.chatLinkKey || null,
+      customerId: row.customer_id || row.recipient_id || row.customerId || row.sender_id, pageName: row.page_name || "ไม่ระบุเพจ",
       customerName: row.customer_name || row._name || "ลูกค้า", latestAt: row._occurred || row.occurred_at || row.synced_at,
       preview: row._text || (row._hasAttachment ? "[ไฟล์แนบ]" : ""), unread: false, messageCount: 0, chatTimeline: [],
     };
     current.latestAt = row._occurred || row.occurred_at || row.synced_at || current.latestAt;
     current.preview = row._text || (row._hasAttachment ? "[ไฟล์แนบ]" : current.preview);
     current.customerId ||= row.customer_id || row.recipient_id || row.customerId || row.sender_id;
+    current.portalKey ||= row.portal_key || row.portalKey || null;
+    current.chatLinkKey ||= row.chat_link_key || row.chatLinkKey || null;
     current.customerName = current.customerName === "ลูกค้า" ? row.customer_name || row._name || current.customerName : current.customerName;
     current.messageCount += 1;
     current.chatTimeline.push(`${row._speaker === "page" ? "[เพจ]" : "[ลูกค้า]"} ${row._text || (row._hasAttachment ? "[ไฟล์แนบ]" : "")}`);
