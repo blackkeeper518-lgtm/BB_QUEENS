@@ -41,8 +41,8 @@ export const appRouter = router({
     messages: publicProcedure.input(z.object({ pageId: z.string().min(1), threadId: z.string().min(1) })).query(({ input }) => fetchChatMessagesFromServer(input.pageId, input.threadId)),
     sendReply: publicProcedure.input(z.object({ pageId: z.string(), pageName: z.string().optional(), portalKey: z.string().optional(), chatLinkKey: z.string().optional(), threadId: z.string(), recipientId: z.string(), text: z.string().optional(), imageUrl: z.string().optional(), stickerId: z.string().optional() })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
-      await persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
-      await persistLocalChatBestEffort({ pageId: input.pageId, threadId: input.threadId, senderId: input.pageId, senderType: "page", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id, providerMessageId: result.message_id });
+      void persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
+      void persistLocalChatBestEffort({ pageId: input.pageId, threadId: input.threadId, senderId: input.pageId, senderType: "page", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id, providerMessageId: result.message_id });
       return result;
     }),
     uploadImage: publicProcedure.input(z.object({ fileName: z.string(), contentType: z.string(), base64: z.string() })).mutation(async ({ input }) => {
@@ -65,16 +65,16 @@ export const appRouter = router({
       text: z.string().trim().min(1).max(2000),
     })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
-      await persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
-      await persistLocalChatBestEffort({
+      void persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
+      void persistLocalChatBestEffort({
         pageId: input.pageId,
         threadId: input.threadId,
         senderId: input.pageId,
         senderType: "page",
         direction: "outbound",
-        text: input.text,
-        adminUserId: ctx.user.id,
-        providerMessageId: result.message_id,
+      text: input.text,
+      adminUserId: ctx.user.id,
+      providerMessageId: result.message_id,
       });
       return result;
     }),
