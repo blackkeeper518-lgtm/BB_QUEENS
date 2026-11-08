@@ -133,6 +133,7 @@ export async function fetchChatThreadsFromServer() {
     fetchLiveOrders(),
   ]);
   const rows = [...customers, ...pages].sort((a, b) => new Date(chatOccurredAt(b) ?? 0).getTime() - new Date(chatOccurredAt(a) ?? 0).getTime());
+  const todayBangkok = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
   const orderByRoom = new Map<string, LiveOrder[]>();
   for (const order of orders) {
     const key = `${order.page_id ?? ""}:${order.thread_id ?? ""}`;
@@ -154,7 +155,7 @@ export async function fetchChatThreadsFromServer() {
       customerId: text(row.customer_id ?? row.recipient_id ?? row.sender_id), pageName: page,
       customerName: text(row.customer_name ?? row.sender_name) ?? "ลูกค้า", latestAt: occurredAt,
       latestOrderNumber: "", preview: rowText, unread: false, messageCount: 0, customerMessages: 0,
-      pageMessages: 0, orderSignals: 0, codSignalCount: 0, snippets: [], chatTimeline: [], orders: [], orderCount: 0, searchText: "",
+      pageMessages: 0, orderSignals: 0, codSignalCount: 0, snippets: [], chatTimeline: [], orders: [], orderCount: 0, searchText: "", todayOrderCount: 0, todayCodOrderCount: 0, codTodayActive: false,
     };
     current.latestAt = current.latestAt || occurredAt;
     current.preview ||= rowText;
@@ -177,6 +178,10 @@ export async function fetchChatThreadsFromServer() {
     room.orderCount = linked.length;
     room.orderSignals = linked.length;
     room.latestOrderNumber = linked[0]?.order_number ?? "";
+    const todayOrders = linked.filter(order => (order.order_date ?? order.created_at?.slice(0, 10)) === todayBangkok);
+    room.todayOrderCount = todayOrders.length;
+    room.todayCodOrderCount = todayOrders.filter(order => order.cod_amount != null || order.expected_cod != null).length;
+    room.codTodayActive = room.codSignalCount > 0 && room.todayCodOrderCount > 0;
     room.searchText += ` ${linked.map(order => `${order.order_number} ${order.phone ?? ""} ${order.source_text ?? ""}`).join(" ")}`;
   }
   return Array.from(map.values()).sort((a, b) => new Date(b.latestAt || 0).getTime() - new Date(a.latestAt || 0).getTime());
