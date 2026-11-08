@@ -84,6 +84,8 @@ export default function ChatHub() {
   const [replyText, setReplyText] = useState("");
   const [replyImageUrl, setReplyImageUrl] = useState("");
   const [stickerId, setStickerId] = useState("");
+  const [optimisticMessages, setOptimisticMessages] = useState<any[]>([]);
+  const optimisticMessageIdRef = useRef<string | null>(null);
   const [deliveryStatus, setDeliveryStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [replyNotice, setReplyNotice] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -119,6 +121,15 @@ export default function ChatHub() {
   const selectedCustomerId = selected?.customerId ?? "";
   const [handoffTracking, setHandoffTracking] = useState<Record<string, any> | null>(null);
   const messagesQuery = trpc.chat.messages.useQuery({ pageId: selectedPageId, threadId: selectedThreadId }, { enabled: Boolean(selectedPageId && selectedThreadId), refetchInterval: 5_000 });
+  useEffect(() => {
+    setOptimisticMessages([]);
+    optimisticMessageIdRef.current = null;
+  }, [selectedPageId, selectedThreadId]);
+  useEffect(() => {
+    const serverTexts = new Set((messagesQuery.data ?? []).filter(message => message.direction === "outbound").map(message => message.text));
+    if (!serverTexts.size) return;
+    setOptimisticMessages(current => current.filter(message => !serverTexts.has(message.text)));
+  }, [messagesQuery.data]);
   useEffect(() => {
     if (!selectedPageId || !selectedThreadId || typeof window === "undefined") {
       setHandoffTracking(null);
@@ -176,7 +187,13 @@ export default function ChatHub() {
       setStickerId("");
       void Promise.all([messagesQuery.refetch(), threadsQuery.refetch()]);
     },
-    onError: error => { setDeliveryStatus("failed"); setReplyNotice(error.message || "ส่งข้อความไม่สำเร็จ"); },
+    onError: error => {
+      setDeliveryStatus("failed");
+      setReplyNotice(error.message || "ส่งข้อความไม่สำเร็จ");
+      const failedId = optimisticMessageIdRef.current;
+      if (failedId) setOptimisticMessages(current => current.filter(message => message.id !== failedId));
+      optimisticMessageIdRef.current = null;
+    },
   });
   const generateSummary = trpc.orders.generateSummary.useMutation({ onSuccess: result => { setSummary(result); setSummaryText(""); setReplyText(result.copyText); } });
   const summaryTimingsQuery = trpc.orders.summaryTimings.useQuery({ limit: 8 }, { enabled: summaryOpen, refetchInterval: false });
@@ -243,6 +260,9 @@ export default function ChatHub() {
     const imageUrl = replyImageUrl.trim();
     if (sendReply.isPending || !selectedPageId || !selectedThreadId || (!text && !imageUrl)) return;
     if (!selectedCustomerId) { setDeliveryStatus("failed"); setReplyNotice("ห้องนี้ยังไม่มี Customer PSID จึงยังส่งข้อความไม่ได้"); return; }
+    const optimisticId = `optimistic-${Date.now()}`;
+    optimisticMessageIdRef.current = optimisticId;
+    setOptimisticMessages(current => [...current, { id: optimisticId, text: text || "ส่งรูปภาพ", message_text: text, direction: "outbound", senderType: "page", side: "right", occurredAt: new Date().toISOString(), attachmentsJson: imageUrl ? JSON.stringify([{ url: imageUrl }]) : "[]" }]);
     sendReply.mutate({
       pageId: selectedPageId,
       pageName: selected?.pageName ?? undefined,
@@ -269,7 +289,7 @@ export default function ChatHub() {
     window.setTimeout(() => setCopied(false), 1600);
   };
   const visibleTimeline = (selected?.chatTimeline ?? []).filter((line: string) => messageFilter === "all" || (messageFilter === "page" ? isPageTimelineLine(line) : isCustomerTimelineLine(line)));
-  const visibleStoredMessages = (messagesQuery.data ?? []).filter(message => messageFilter === "all" || (messageFilter === "page" ? message.direction === "outbound" : message.direction === "inbound"));
+  const visibleStoredMessages = [...(messagesQuery.data ?? []), ...optimisticMessages].filter(message => messageFilter === "all" || (messageFilter === "page" ? message.direction === "outbound" : message.direction === "inbound"));
 
   const composer = <div className="min-h-0 overflow-hidden border-t border-cyan-300/20 pt-2">
     <div className="mb-2 flex shrink-0 flex-wrap items-center gap-2"><input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="hidden" onChange={event => { handleImageUpload(event.target.files?.[0]); event.currentTarget.value = ""; }} /><Button type="button" size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploadImage.isPending} className="h-8 border-cyan-300/25 bg-cyan-300/[0.06] text-xs text-cyan-100 shadow-[0_0_12px_rgba(34,211,238,.08)]"><ImagePlus className="mr-1 h-3.5 w-3.5" />{uploadImage.isPending ? "กำลังอัปโหลด…" : "แนบรูป"}</Button>{replyImageUrl ? <span className="max-w-40 truncate text-[10px] text-emerald-300">รูปพร้อมส่ง</span> : null}</div>
