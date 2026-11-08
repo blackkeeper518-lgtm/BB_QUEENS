@@ -18,7 +18,7 @@ export const appRouter = router({
   }),
 
   chat: router({
-    sendReply: publicProcedure.input(z.object({ pageId: z.string(), threadId: z.string(), recipientId: z.string(), text: z.string().optional(), imageUrl: z.string().optional(), stickerId: z.string().optional() })).mutation(async ({ input, ctx }) => {
+    sendReply: publicProcedure.input(z.object({ pageId: z.string(), portalKey: z.string().optional(), chatLinkKey: z.string().optional(), threadId: z.string(), recipientId: z.string(), text: z.string().optional(), imageUrl: z.string().optional(), stickerId: z.string().optional() })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
       await db.saveChatMessage({ pageId: input.pageId, threadId: input.threadId, senderId: input.recipientId, senderType: "admin", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id });
       return result;
@@ -35,6 +35,8 @@ export const appRouter = router({
     purgeExpired: adminProcedure.input(z.object({ confirmation: z.literal("DELETE_PARCELS_OLDER_THAN_3_DAYS") })).mutation(() => purgeOldParcels()),
     sendTracking: adminProcedure.input(z.object({
       pageId: z.string().min(1),
+      portalKey: z.string().optional(),
+      chatLinkKey: z.string().optional(),
       threadId: z.string().min(1),
       recipientId: z.string().min(1),
       text: z.string().trim().min(1).max(2000),

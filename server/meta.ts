@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 export type MetaAttachment = { type: string; url?: string; payload?: Record<string, unknown> };
 
-async function pageToken(pageId: string) {
+async function pageToken(pageId: string, portalKey?: string) {
   // The Chat lane is optional. Existing deployments continue using Tracking
   // until the new Chat variables are added on Render.
   // Select URL + service key as a pair. Do not combine Chat URL with Tracking key
@@ -15,7 +15,8 @@ async function pageToken(pageId: string) {
   const supabaseUrl = lane?.url?.trim().replace(/\/$/, "");
   const serviceRoleKey = lane?.key?.trim();
   if (supabaseUrl && serviceRoleKey) {
-    const params = new URLSearchParams({ select: "page_id,page_name,access_token", page_id: `eq.${pageId}`, limit: "1" });
+    const params = new URLSearchParams({ select: "page_id,page_name,access_token,portal_key", page_id: `eq.${pageId}`, limit: "1" });
+    if (portalKey?.trim()) params.set("portal_key", `eq.${portalKey.trim()}`);
     const response = await fetch(`${supabaseUrl}/rest/v1/page_tokens_vault?${params}`, { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } });
     if (response.ok) {
       const rows = await response.json() as Array<Record<string, unknown>>;
@@ -48,8 +49,8 @@ export function verifyMetaSignature(rawBody: string, signature: string | undefin
   return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
-export async function sendMetaMessage(input: { pageId: string; recipientId: string; text?: string; imageUrl?: string; stickerId?: string }) {
-  const accessToken = await pageToken(input.pageId);
+export async function sendMetaMessage(input: { pageId: string; portalKey?: string; chatLinkKey?: string; recipientId: string; text?: string; imageUrl?: string; stickerId?: string }) {
+  const accessToken = await pageToken(input.pageId, input.portalKey);
   if (!accessToken) throw new Error(`No Meta page token configured for page ${input.pageId}`);
   const text = input.text?.trim() || "";
   const imageUrl = input.imageUrl?.trim() || "";
