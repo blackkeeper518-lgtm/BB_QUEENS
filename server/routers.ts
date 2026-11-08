@@ -17,6 +17,16 @@ async function persistOutgoingChatBestEffort(input: Parameters<typeof recordOutg
     console.error("[chat] outgoing write-back failed after Meta accepted message", error);
   }
 }
+async function persistLocalChatBestEffort(input: Parameters<typeof db.saveChatMessage>[0]) {
+  try {
+    await db.saveChatMessage(input);
+  } catch (error) {
+    // The canonical chat tables are the source of truth. Local MySQL is only
+    // an optional audit cache and must never turn a successful Meta send into
+    // a failed reply in the operator UI.
+    console.error("[chat] local audit write skipped after Meta accepted message", error);
+  }
+}
 
 export const appRouter = router({
   health: publicProcedure.query(() => ({ ok: true, service: "drakside-system", time: new Date().toISOString() })),
@@ -32,7 +42,7 @@ export const appRouter = router({
     sendReply: publicProcedure.input(z.object({ pageId: z.string(), pageName: z.string().optional(), portalKey: z.string().optional(), chatLinkKey: z.string().optional(), threadId: z.string(), recipientId: z.string(), text: z.string().optional(), imageUrl: z.string().optional(), stickerId: z.string().optional() })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
       await persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
-      await db.saveChatMessage({ pageId: input.pageId, threadId: input.threadId, senderId: input.pageId, senderType: "page", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id, providerMessageId: result.message_id });
+      await persistLocalChatBestEffort({ pageId: input.pageId, threadId: input.threadId, senderId: input.pageId, senderType: "page", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id, providerMessageId: result.message_id });
       return result;
     }),
     uploadImage: publicProcedure.input(z.object({ fileName: z.string(), contentType: z.string(), base64: z.string() })).mutation(async ({ input }) => {
@@ -56,7 +66,7 @@ export const appRouter = router({
     })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
       await persistOutgoingChatBestEffort({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
-      await db.saveChatMessage({
+      await persistLocalChatBestEffort({
         pageId: input.pageId,
         threadId: input.threadId,
         senderId: input.pageId,
