@@ -70,6 +70,17 @@ body { @apply bg-background text-foreground; font-family:'Space Grotesk',sans-se
 .chat-cosmos-timeline::after { content:""; position:absolute; z-index:-1; top:18%; right:-12%; width:230px; height:2px; pointer-events:none; border-radius:999px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),#68efff,rgba(255,100,220,.8),transparent); box-shadow:0 0 8px #68efff,0 0 22px rgba(255,87,211,.7); transform:rotate(-24deg); animation:chat-meteor 7s ease-in-out infinite; }
 .chat-cosmos-composer { position:relative; isolation:isolate; }
 .chat-cosmos-composer::before { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; background:linear-gradient(90deg,transparent,rgba(75,231,255,.16),rgba(255,86,211,.18),transparent); background-size:220% 100%; animation:chat-running-light 5s linear infinite; }
+/* HOLOGRAM PAGE LABELS — pink energy sign, not a flat checkbox */
+.page-holo-label { position:relative; isolation:isolate; overflow:hidden; border-color:rgba(255,111,219,.24); background:linear-gradient(105deg,rgba(37,10,52,.84),rgba(93,16,82,.28),rgba(14,26,45,.72)); box-shadow:inset 0 0 18px rgba(255,73,205,.05),0 0 0 rgba(255,73,205,0); }
+.page-holo-label::before { content:""; position:absolute; z-index:0; inset:-2px; pointer-events:none; background:linear-gradient(105deg,transparent 12%,rgba(255,164,237,.06) 35%,rgba(255,81,208,.8) 49%,rgba(255,226,250,.92) 52%,rgba(255,81,208,.2) 57%,transparent 78%); background-size:220% 100%; animation:page-holo-sweep 3.8s linear infinite; opacity:.3; }
+.page-holo-label::after { content:""; position:absolute; z-index:0; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,126,225,.07) 4px,transparent 5px); mix-blend-mode:screen; opacity:.5; }
+.page-holo-label > * { position:relative; z-index:1; }
+.page-holo-label:hover { border-color:rgba(255,134,225,.78) !important; transform:translateX(2px); box-shadow:inset 3px 0 #ff63cf,0 0 14px rgba(255,63,201,.3),0 0 30px rgba(194,68,255,.12); }
+.page-holo-label--live { border-color:#ff5fcf !important; color:#ffe3f8 !important; background:linear-gradient(105deg,rgba(80,12,77,.9),rgba(255,39,184,.17),rgba(26,12,50,.9)) !important; box-shadow:inset 0 0 16px rgba(255,52,201,.22),0 0 10px rgba(255,66,206,.68),0 0 28px rgba(255,39,184,.3),0 0 56px rgba(170,54,255,.15); animation:page-holo-pulse 1.8s ease-in-out infinite; }
+.page-holo-label--live::before { opacity:.82; animation-duration:2.4s; }
+@keyframes page-holo-sweep { from { background-position:180% 0; } to { background-position:-35% 0; } }
+@keyframes page-holo-pulse { 0%,100% { filter:brightness(.96); box-shadow:inset 0 0 16px rgba(255,52,201,.2),0 0 9px rgba(255,66,206,.55),0 0 28px rgba(255,39,184,.22); } 50% { filter:brightness(1.16); box-shadow:inset 0 0 22px rgba(255,52,201,.28),0 0 16px rgba(255,112,224,.9),0 0 42px rgba(255,39,184,.48),0 0 68px rgba(170,54,255,.22); } }
+@media (prefers-reduced-motion:reduce) { .page-holo-label::before,.page-holo-label--live { animation:none; } }
 .chat-cosmos-tools { min-width:0; }
 @keyframes chat-star-drift { from { transform:translate3d(0,0,0); } to { transform:translate3d(-34px,48px,0); } }
 @keyframes chat-meteor { 0%,58% { opacity:0; transform:translate3d(80px,-20px,0) rotate(-24deg); } 66% { opacity:1; } 82%,100% { opacity:0; transform:translate3d(-430px,170px,0) rotate(-24deg); } }
