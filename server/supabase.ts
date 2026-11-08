@@ -131,21 +131,8 @@ export async function fetchChatThreadsFromServer() {
     supabaseGet<Record<string, unknown>[]>("chat_customer_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
     supabaseGet<Record<string, unknown>[]>("chat_page_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
   ]);
-  let orders: LiveOrder[] = [];
-  try {
-    orders = await fetchLiveOrders();
-  } catch (error) {
-    console.error("[chat] order lane unavailable; loading chat without linked orders", error);
-  }
   const rows = [...customers, ...pages].sort((a, b) => new Date(chatOccurredAt(b) ?? 0).getTime() - new Date(chatOccurredAt(a) ?? 0).getTime());
   const todayBangkok = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
-  const orderByRoom = new Map<string, LiveOrder[]>();
-  for (const order of orders) {
-    const key = `${order.page_id ?? ""}:${order.thread_id ?? ""}`;
-    const bucket = orderByRoom.get(key) ?? [];
-    bucket.push(order);
-    orderByRoom.set(key, bucket);
-  }
   const map = new Map<string, any>();
   for (const row of rows) {
     const pageId = text(row.page_id ?? row.pageId) ?? "";
@@ -160,7 +147,7 @@ export async function fetchChatThreadsFromServer() {
       customerId: text(row.customer_id ?? row.recipient_id ?? row.sender_id), pageName: page,
       customerName: text(row.customer_name ?? row.sender_name) ?? "ลูกค้า", latestAt: occurredAt,
       latestOrderNumber: "", preview: rowText, unread: false, messageCount: 0, customerMessages: 0,
-      pageMessages: 0, orderSignals: 0, codSignalCount: 0, snippets: [], chatTimeline: [], orders: [], orderCount: 0, searchText: "", todayOrderCount: 0, todayCodOrderCount: 0, codTodayActive: false,
+      pageMessages: 0, orderSignals: 0, codSignalCount: 0, todayCodSignalCount: 0, snippets: [], chatTimeline: [], orders: [], orderCount: 0, searchText: "", todayOrderCount: 0, todayCodOrderCount: 0, codTodayActive: false,
     };
     current.latestAt = current.latestAt || occurredAt;
     current.preview ||= rowText;
@@ -171,23 +158,19 @@ export async function fetchChatThreadsFromServer() {
     current.messageCount += 1;
     const pageMessage = isPageChatRow(row);
     if (pageMessage) current.pageMessages += 1; else current.customerMessages += 1;
-    if (/\bcod\b|ยอด\s*(?:รวม\s*)?(?:cod|เก็บเงินปลายทาง)|เก็บเงินปลายทาง/i.test(rowText)) current.codSignalCount += 1;
+    const hasCodSignal = /\bcod\b|ยอด\s*(?:รวม\s*)?(?:cod|เก็บเงินปลายทาง)|เก็บเงินปลายทาง/i.test(rowText);
+    if (hasCodSignal) {
+      current.codSignalCount += 1;
+      const rowDateBangkok = occurredAt ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date(occurredAt)) : "";
+      if (rowDateBangkok === todayBangkok) current.todayCodSignalCount += 1;
+    }
     current.chatTimeline.push(`${pageMessage ? "[เพจ]" : "[ลูกค้า]"} ${rowText}`.trim());
     if (current.snippets.length < 3 && rowText) current.snippets.push(rowText);
     current.searchText += ` ${current.customerName} ${page} ${rowText}`;
     map.set(key, current);
   }
   for (const [key, room] of map) {
-    const linked = orderByRoom.get(key) ?? [];
-    room.orders = linked;
-    room.orderCount = linked.length;
-    room.orderSignals = linked.length;
-    room.latestOrderNumber = linked[0]?.order_number ?? "";
-    const todayOrders = linked.filter(order => (order.order_date ?? order.created_at?.slice(0, 10)) === todayBangkok);
-    room.todayOrderCount = todayOrders.length;
-    room.todayCodOrderCount = todayOrders.filter(order => order.cod_amount != null || order.expected_cod != null).length;
-    room.codTodayActive = room.codSignalCount > 0 && room.todayCodOrderCount > 0;
-    room.searchText += ` ${linked.map(order => `${order.order_number} ${order.phone ?? ""} ${order.source_text ?? ""}`).join(" ")}`;
+    room.codTodayActive = room.todayCodSignalCount > 0;
   }
   return Array.from(map.values()).sort((a, b) => new Date(b.latestAt || 0).getTime() - new Date(a.latestAt || 0).getTime());
 }
