@@ -145,7 +145,7 @@ export default function TelegramDeliveryRoom() {
     setPostalMessage(`คัดลอกที่อยู่แล้ว: ${address}`);
   }
 
-  return <div className="min-h-full space-y-5 text-white">
+  return <div className="telegram-green-frame min-h-full space-y-5 text-white">
     <header className="flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-cyan-300/15 bg-[#0b1218] p-6 shadow-2xl shadow-cyan-950/15">
       <div>
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300"><Database className="h-4 w-4" /> N8N · SUPABASE DATA VIEW</p>

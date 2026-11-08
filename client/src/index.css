@@ -544,3 +544,16 @@ body { @apply bg-background text-foreground; font-family:'Space Grotesk',sans-se
 .cod-room-sign { position:relative; border-color:#ffb8ec !important; background:#e91592 !important; color:#fff !important; text-shadow:0 0 3px #fff,0 0 8px #ffb7e9; box-shadow:0 0 4px #fff,0 0 10px #ff8ddd,0 0 22px rgba(255,24,174,.72) !important; }
 .cod-room-sign::after { content:""; position:absolute; inset:-3px -4px; border:1px solid rgba(255,188,235,.82); border-radius:50%; box-shadow:0 0 7px rgba(255,67,202,.85); pointer-events:none; }
 .cod-room-header { border-color:#ffb8ec !important; background:rgba(226,18,142,.28) !important; color:#fff !important; text-shadow:0 0 3px #fff,0 0 10px #ff8ddd; box-shadow:0 0 6px #ff70d1,0 0 18px rgba(255,25,180,.5); }
+
+/* COD LEADERBOARD — quiet pressure, visible mathematics */
+.cod-leaderboard-marquee { position:relative; min-height:31px; overflow:hidden; border:1px solid rgba(255,83,204,.3); border-radius:12px; background:linear-gradient(90deg,rgba(38,8,48,.88),rgba(20,13,39,.92),rgba(38,8,48,.88)); box-shadow:inset 0 0 16px rgba(255,40,190,.08),0 0 14px rgba(255,37,183,.12); }
+.cod-leaderboard-marquee::before { content:"COD RANKING // TODAY"; position:absolute; z-index:2; left:0; top:0; bottom:0; display:flex; align-items:center; padding:0 10px; background:linear-gradient(90deg,#17091f 72%,transparent); color:#ff9ce5; font:600 8px/1 'IBM Plex Mono',monospace; letter-spacing:.14em; pointer-events:none; }
+.cod-leaderboard-track { display:flex; width:max-content; align-items:center; gap:24px; padding:7px 18px 7px 170px; animation:cod-rank-run 32s linear infinite; white-space:nowrap; }
+.cod-leaderboard-item { color:#ffd4f3; font:500 10px/1.2 'IBM Plex Mono',monospace; text-shadow:0 0 8px rgba(255,91,213,.48); }
+.cod-leaderboard-item b { color:#ff65cf; }
+.cod-leaderboard-item strong { color:#fff; font-weight:700; }
+@keyframes cod-rank-run { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+.cod-leaderboard-marquee:hover .cod-leaderboard-track { animation-play-state:paused; }
+.telegram-green-frame { position:relative; isolation:isolate; }
+.telegram-green-frame::before { content:""; position:fixed; z-index:-1; inset:8px; pointer-events:none; border:1px solid rgba(93,255,204,.5); border-radius:24px; box-shadow:0 0 8px rgba(93,255,204,.75),0 0 26px rgba(31,255,189,.32),0 0 70px rgba(31,255,189,.18),inset 0 0 38px rgba(31,255,189,.08); }
+.telegram-green-frame::after { content:""; position:fixed; z-index:-1; inset:0; pointer-events:none; background:radial-gradient(ellipse at top,rgba(75,255,202,.08),transparent 45%),radial-gradient(ellipse at bottom,rgba(75,255,202,.08),transparent 50%); }
