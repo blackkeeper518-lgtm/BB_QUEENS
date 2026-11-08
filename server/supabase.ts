@@ -52,6 +52,44 @@ export async function supabaseGet<T>(path: string, project: SupabaseProject = "m
   throw new Error(`Supabase connection failed after 3 attempts (${path}): ${lastError instanceof Error ? lastError.message : String(lastError)}. Target=${target}`);
 }
 export async function supabasePost<T>(path: string, body: unknown, project: SupabaseProject = "main"): Promise<T> { const { baseUrl, key } = config(project); const response = await fetch(`${baseUrl}/rest/v1/${path}`, { method: "POST", headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify(body) }); if (!response.ok) throw new Error(`Supabase returned HTTP ${response.status}: ${(await response.text()).slice(0, 300)}`); return response.json() as Promise<T>; }
+export async function recordOutgoingChatMessage(input: {
+  portalKey?: string;
+  chatLinkKey?: string;
+  pageId: string;
+  pageName?: string;
+  threadId: string;
+  recipientId: string;
+  messageId?: string;
+  text?: string;
+  occurredAt?: Date;
+}) {
+  const occurredAt = input.occurredAt ?? new Date();
+  const iso = occurredAt.toISOString();
+  const messageId = input.messageId?.trim() || null;
+  const chatLinkKey = input.chatLinkKey?.trim() || `${input.pageId}_t_${input.threadId}`;
+  const payload = {
+    chat_link_key: chatLinkKey,
+    page_id: input.pageId,
+    page_name: input.pageName?.trim() || null,
+    portal_key: input.portalKey?.trim() || null,
+    thread_id: input.threadId,
+    recipient_id: input.recipientId,
+    message_id: messageId,
+    speaker: "page",
+    is_sent: true,
+    time: iso,
+    occurred_at: iso,
+    message_time_display: iso,
+    message_text: input.text?.trim() || null,
+    page_latest_message: input.text?.trim() || null,
+    page_message_time_th: iso,
+    sync_status: "SENT",
+    dedupe_key: messageId ? `${chatLinkKey}:${messageId}` : `${chatLinkKey}:${iso}`,
+  };
+  const relation = encodeURIComponent("🧿BB_xXx_ORDERCONTROL");
+  return supabasePost<Record<string, unknown>[]>(relation, payload, "chat");
+}
+
 export async function fetchParcelMappingQueue(input: { status: "all" | "sent"; limit: number }) {
   // These are quoted PostgreSQL relation names; keep the space after the emoji.
   // n8n owns the pipeline mutations. This room only reads the queue and history.

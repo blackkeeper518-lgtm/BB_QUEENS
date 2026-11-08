@@ -254,6 +254,7 @@ export default function ChatHub() {
     if (!selectedCustomerId) { setDeliveryStatus("failed"); setReplyNotice("ห้องนี้ยังไม่มี Customer PSID จึงยังส่งข้อความไม่ได้"); return; }
     sendReply.mutate({
       pageId: selectedPageId,
+      pageName: selected?.pageName ?? undefined,
       portalKey: selected?.portalKey ?? undefined,
       chatLinkKey: selected?.chatLinkKey ?? undefined,
       threadId: selectedThreadId,

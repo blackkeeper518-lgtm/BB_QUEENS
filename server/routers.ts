@@ -3,7 +3,7 @@ import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { COOKIE_NAME } from "../shared/const";
 import { sendMetaMessage } from "./meta";
 import { storagePut } from "./storage";
-import { fetchParcelMappingQueue, purgeOldParcels, supabaseGet, supabasePost } from "./supabase";
+import { fetchParcelMappingQueue, purgeOldParcels, recordOutgoingChatMessage, supabaseGet, supabasePost } from "./supabase";
 import * as db from "./db";
 
 const ownerId = (ctx: { user: { id: number } | null }) => ctx.user?.id ?? 0;
@@ -18,9 +18,10 @@ export const appRouter = router({
   }),
 
   chat: router({
-    sendReply: publicProcedure.input(z.object({ pageId: z.string(), portalKey: z.string().optional(), chatLinkKey: z.string().optional(), threadId: z.string(), recipientId: z.string(), text: z.string().optional(), imageUrl: z.string().optional(), stickerId: z.string().optional() })).mutation(async ({ input, ctx }) => {
+    sendReply: publicProcedure.input(z.object({ pageId: z.string(), pageName: z.string().optional(), portalKey: z.string().optional(), chatLinkKey: z.string().optional(), threadId: z.string(), recipientId: z.string(), text: z.string().optional(), imageUrl: z.string().optional(), stickerId: z.string().optional() })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
-      await db.saveChatMessage({ pageId: input.pageId, threadId: input.threadId, senderId: input.recipientId, senderType: "admin", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id });
+      await recordOutgoingChatMessage({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
+      await db.saveChatMessage({ pageId: input.pageId, threadId: input.threadId, senderId: input.pageId, senderType: "page", direction: "outbound", text: input.text, attachments: input.imageUrl ? [{ url: input.imageUrl }] : undefined, adminUserId: ctx.user?.id, providerMessageId: result.message_id });
       return result;
     }),
     uploadImage: publicProcedure.input(z.object({ fileName: z.string(), contentType: z.string(), base64: z.string() })).mutation(async ({ input }) => {
@@ -35,6 +36,7 @@ export const appRouter = router({
     purgeExpired: adminProcedure.input(z.object({ confirmation: z.literal("DELETE_PARCELS_OLDER_THAN_3_DAYS") })).mutation(() => purgeOldParcels()),
     sendTracking: adminProcedure.input(z.object({
       pageId: z.string().min(1),
+      pageName: z.string().optional(),
       portalKey: z.string().optional(),
       chatLinkKey: z.string().optional(),
       threadId: z.string().min(1),
@@ -42,14 +44,16 @@ export const appRouter = router({
       text: z.string().trim().min(1).max(2000),
     })).mutation(async ({ input, ctx }) => {
       const result = await sendMetaMessage(input);
+      await recordOutgoingChatMessage({ portalKey: input.portalKey, chatLinkKey: input.chatLinkKey, pageId: input.pageId, pageName: input.pageName, threadId: input.threadId, recipientId: input.recipientId, messageId: result.message_id, text: input.text });
       await db.saveChatMessage({
         pageId: input.pageId,
         threadId: input.threadId,
-        senderId: input.recipientId,
-        senderType: "admin",
+        senderId: input.pageId,
+        senderType: "page",
         direction: "outbound",
         text: input.text,
         adminUserId: ctx.user.id,
+        providerMessageId: result.message_id,
       });
       return result;
     }),
