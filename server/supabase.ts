@@ -16,14 +16,14 @@ function config(project: SupabaseProject = "main") {
       ? process.env.PARCEL_SUPABASE_URL
       : lane === "tracking"
         ? process.env.TRACKING_SUPABASE_URL
-        : process.env.ORDER_SUPABASE_URL;
+        : process.env.MAIN_ORDER_SUPABASE_URL || process.env.ORDER_SUPABASE_URL;
   const laneKey = lane === "chat"
     ? process.env.CHAT_SUPABASE_SERVICE_ROLE_KEY
     : lane === "parcel"
       ? process.env.PARCEL_SUPABASE_SERVICE_ROLE_KEY
       : lane === "tracking"
         ? process.env.TRACKING_SUPABASE_SERVICE_ROLE_KEY
-        : process.env.ORDER_SUPABASE_SERVICE_ROLE_KEY;
+        : process.env.MAIN_ORDER_SUPABASE_SERVICE_ROLE_KEY || process.env.ORDER_SUPABASE_SERVICE_ROLE_KEY;
   // New lanes are additive. Until their Render variables exist, keep the
   // existing Tracking connection working without a data or route migration.
   const rawUrl = laneUrl?.trim() || (lane === "chat" || lane === "parcel" ? process.env.TRACKING_SUPABASE_URL?.trim() : undefined) || process.env.SUPABASE_URL?.trim();

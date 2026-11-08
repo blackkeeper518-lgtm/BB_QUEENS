@@ -3,18 +3,17 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export type MetaAttachment = { type: string; url?: string; payload?: Record<string, unknown> };
 
 async function pageToken(pageId: string, portalKey?: string) {
-  // The Chat lane is optional. Existing deployments continue using Tracking
-  // until the new Chat variables are added on Render.
-  // Select URL + service key as a pair. Do not combine Chat URL with Tracking key
-  // when only one of the new Chat environment variables has been configured.
-  const lane = [
-    { url: process.env.CHAT_SUPABASE_URL, key: process.env.CHAT_SUPABASE_SERVICE_ROLE_KEY },
-    { url: process.env.TRACKING_SUPABASE_URL, key: process.env.TRACKING_SUPABASE_SERVICE_ROLE_KEY },
-    { url: process.env.SUPABASE_URL, key: process.env.SUPABASE_SERVICE_ROLE_KEY },
-  ].find(candidate => candidate.url?.trim() && candidate.key?.trim());
-  const supabaseUrl = lane?.url?.trim().replace(/\/$/, "");
-  const serviceRoleKey = lane?.key?.trim();
-  if (supabaseUrl && serviceRoleKey) {
+  // Chat is the primary source. The other lanes are compatibility fallbacks
+  // because existing Render environment groups may keep the vault in Main or Tracking.
+  const lanes = [
+    { name: "CHAT", url: process.env.CHAT_SUPABASE_URL, key: process.env.CHAT_SUPABASE_SERVICE_ROLE_KEY },
+    { name: "MAIN_ORDER", url: process.env.MAIN_ORDER_SUPABASE_URL || process.env.ORDER_SUPABASE_URL, key: process.env.MAIN_ORDER_SUPABASE_SERVICE_ROLE_KEY || process.env.ORDER_SUPABASE_SERVICE_ROLE_KEY },
+    { name: "TRACKING", url: process.env.TRACKING_SUPABASE_URL, key: process.env.TRACKING_SUPABASE_SERVICE_ROLE_KEY },
+    { name: "SUPABASE", url: process.env.SUPABASE_URL, key: process.env.SUPABASE_SERVICE_ROLE_KEY },
+  ].filter(candidate => candidate.url?.trim() && candidate.key?.trim());
+  for (const lane of lanes) {
+    const supabaseUrl = lane.url!.trim().replace(/\/$/, "");
+    const serviceRoleKey = lane.key!.trim();
     const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` };
     const queries = [portalKey?.trim(), undefined];
     for (const candidatePortalKey of queries) {
@@ -30,7 +29,7 @@ async function pageToken(pageId: string, portalKey?: string) {
         }
         if (!candidatePortalKey) break;
       } else if (response.status !== 404) {
-        throw new Error(`Supabase page_tokens_vault returned HTTP ${response.status}`);
+        throw new Error(`Supabase ${lane.name} page_tokens_vault returned HTTP ${response.status}`);
       }
     }
   }
