@@ -127,11 +127,16 @@ function isPageChatRow(row: Record<string, unknown>) {
 }
 
 export async function fetchChatThreadsFromServer() {
-  const [customers, pages, orders] = await Promise.all([
+  const [customers, pages] = await Promise.all([
     supabaseGet<Record<string, unknown>[]>("chat_customer_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
     supabaseGet<Record<string, unknown>[]>("chat_page_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
-    fetchLiveOrders(),
   ]);
+  let orders: LiveOrder[] = [];
+  try {
+    orders = await fetchLiveOrders();
+  } catch (error) {
+    console.error("[chat] order lane unavailable; loading chat without linked orders", error);
+  }
   const rows = [...customers, ...pages].sort((a, b) => new Date(chatOccurredAt(b) ?? 0).getTime() - new Date(chatOccurredAt(a) ?? 0).getTime());
   const todayBangkok = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
   const orderByRoom = new Map<string, LiveOrder[]>();
