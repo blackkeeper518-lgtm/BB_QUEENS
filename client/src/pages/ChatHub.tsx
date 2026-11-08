@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useIsMobile } from "@/hooks/useMobile";
-import { readChatMessages, readChatThreads, subscribeToChatMessages } from "@/lib/canonical";
-import { useQuery } from "@tanstack/react-query";
 import { trpc } from "@/lib/trpc";
 import { Check, CheckCircle2, ChevronDown, CircleUserRound, Clipboard, ImagePlus, LoaderCircle, MessageCircle, RefreshCw, Search, Send, Sparkles, Users, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -100,7 +98,7 @@ export default function ChatHub() {
   const [showNewMessages, setShowNewMessages] = useState(false);
   const nearBottomRef = useRef(true);
   const lastSelectedKeyRef = useRef<string | null>(null);
-  const threadsQuery = useQuery({ queryKey: ["canonical-chat-threads"], queryFn: readChatThreads, refetchInterval: 15_000 });
+  const threadsQuery = trpc.chat.threads.useQuery(undefined, { refetchInterval: 15_000 });
   const threads = threadsQuery.data ?? [];
   const availablePages = useMemo<Array<[string, string]>>(
     () => Array.from(new Map(threads.filter(thread => thread.pageId && thread.pageName && thread.pageName !== "ไม่ระบุเพจ").map(thread => [thread.pageId as string, thread.pageName as string] as [string, string])).entries()).sort((a, b) => a[1].localeCompare(b[1], "th")),
@@ -120,7 +118,7 @@ export default function ChatHub() {
   const selectedThreadId = selected?.threadId ?? "";
   const selectedCustomerId = selected?.customerId ?? "";
   const [handoffTracking, setHandoffTracking] = useState<Record<string, any> | null>(null);
-  const messagesQuery = useQuery({ queryKey: ["canonical-chat-messages", selectedPageId, selectedThreadId], queryFn: () => readChatMessages(selectedPageId, selectedThreadId), enabled: Boolean(selectedPageId && selectedThreadId), refetchInterval: 5_000 });
+  const messagesQuery = trpc.chat.messages.useQuery({ pageId: selectedPageId, threadId: selectedThreadId }, { enabled: Boolean(selectedPageId && selectedThreadId), refetchInterval: 5_000 });
   useEffect(() => {
     if (!selectedPageId || !selectedThreadId || typeof window === "undefined") {
       setHandoffTracking(null);
@@ -132,13 +130,6 @@ export default function ChatHub() {
     } catch {
       setHandoffTracking(null);
     }
-  }, [selectedPageId, selectedThreadId]);
-  useEffect(() => {
-    const unsubscribe = subscribeToChatMessages(() => {
-      void threadsQuery.refetch();
-      if (selectedPageId && selectedThreadId) void messagesQuery.refetch();
-    });
-    return unsubscribe;
   }, [selectedPageId, selectedThreadId]);
   const soundSnapshotRef = useRef({ room: "", count: 0 });
   useEffect(() => {

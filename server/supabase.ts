@@ -90,6 +90,93 @@ export async function recordOutgoingChatMessage(input: {
   return supabasePost<Record<string, unknown>[]>(relation, payload, "chat");
 }
 
+function chatText(row: Record<string, unknown>) {
+  return text(row.message_text ?? row.message_raw ?? row.text) ?? "";
+}
+
+function chatOccurredAt(row: Record<string, unknown>) {
+  return text(row.occurred_at ?? row.time ?? row.created_at ?? row.synced_at);
+}
+
+function isPageChatRow(row: Record<string, unknown>) {
+  return /page|admin|แอดมิน|เพจ/i.test(String(row.speaker_type ?? row.speaker ?? row.sender_type ?? ""));
+}
+
+export async function fetchChatThreadsFromServer() {
+  const [customers, pages, orders] = await Promise.all([
+    supabaseGet<Record<string, unknown>[]>("chat_customer_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
+    supabaseGet<Record<string, unknown>[]>("chat_page_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
+    fetchLiveOrders(),
+  ]);
+  const rows = [...customers, ...pages].sort((a, b) => new Date(chatOccurredAt(b) ?? 0).getTime() - new Date(chatOccurredAt(a) ?? 0).getTime());
+  const orderByRoom = new Map<string, LiveOrder[]>();
+  for (const order of orders) {
+    const key = `${order.page_id ?? ""}:${order.thread_id ?? ""}`;
+    const bucket = orderByRoom.get(key) ?? [];
+    bucket.push(order);
+    orderByRoom.set(key, bucket);
+  }
+  const map = new Map<string, any>();
+  for (const row of rows) {
+    const pageId = text(row.page_id ?? row.pageId) ?? "";
+    const threadId = text(row.thread_id ?? row.threadId ?? row.conversation_key ?? row.conversation_id) ?? "";
+    if (!pageId || !threadId) continue;
+    const key = `${pageId}:${threadId}`;
+    const page = text(row.page_name) ?? "ไม่ระบุเพจ";
+    const rowText = chatText(row);
+    const occurredAt = chatOccurredAt(row);
+    const current = map.get(key) ?? {
+      key, pageId, threadId, portalKey: text(row.portal_key), chatLinkKey: text(row.chat_link_key),
+      customerId: text(row.customer_id ?? row.recipient_id ?? row.sender_id), pageName: page,
+      customerName: text(row.customer_name ?? row.sender_name) ?? "ลูกค้า", latestAt: occurredAt,
+      latestOrderNumber: "", preview: rowText, unread: false, messageCount: 0, customerMessages: 0,
+      pageMessages: 0, orderSignals: 0, codSignalCount: 0, snippets: [], chatTimeline: [], orders: [], orderCount: 0, searchText: "",
+    };
+    current.latestAt = current.latestAt || occurredAt;
+    current.preview ||= rowText;
+    current.portalKey ||= text(row.portal_key);
+    current.chatLinkKey ||= text(row.chat_link_key);
+    current.customerId ||= text(row.customer_id ?? row.recipient_id ?? row.sender_id);
+    current.customerName = current.customerName === "ลูกค้า" ? (text(row.customer_name ?? row.sender_name) ?? current.customerName) : current.customerName;
+    current.messageCount += 1;
+    const pageMessage = isPageChatRow(row);
+    if (pageMessage) current.pageMessages += 1; else current.customerMessages += 1;
+    if (/\bcod\b|ยอด\s*(?:รวม\s*)?(?:cod|เก็บเงินปลายทาง)|เก็บเงินปลายทาง/i.test(rowText)) current.codSignalCount += 1;
+    current.chatTimeline.push(`${pageMessage ? "[เพจ]" : "[ลูกค้า]"} ${rowText}`.trim());
+    if (current.snippets.length < 3 && rowText) current.snippets.push(rowText);
+    current.searchText += ` ${current.customerName} ${page} ${rowText}`;
+    map.set(key, current);
+  }
+  for (const [key, room] of map) {
+    const linked = orderByRoom.get(key) ?? [];
+    room.orders = linked;
+    room.orderCount = linked.length;
+    room.orderSignals = linked.length;
+    room.latestOrderNumber = linked[0]?.order_number ?? "";
+    room.searchText += ` ${linked.map(order => `${order.order_number} ${order.phone ?? ""} ${order.source_text ?? ""}`).join(" ")}`;
+  }
+  return Array.from(map.values()).sort((a, b) => new Date(b.latestAt || 0).getTime() - new Date(a.latestAt || 0).getTime());
+}
+
+export async function fetchChatMessagesFromServer(pageId: string, threadId: string) {
+  const [customers, pages] = await Promise.all([
+    supabaseGet<Record<string, unknown>[]>("chat_customer_messages?select=*&order=occurred_at.asc&limit=10000", "chat"),
+    supabaseGet<Record<string, unknown>[]>("chat_page_messages?select=*&order=occurred_at.asc&limit=10000", "chat"),
+  ]);
+  return [...customers, ...pages]
+    .filter(row => String(row.page_id ?? row.pageId ?? "") === pageId && String(row.thread_id ?? row.threadId ?? row.conversation_key ?? row.conversation_id ?? "") === threadId)
+    .sort((a, b) => new Date(chatOccurredAt(a) ?? 0).getTime() - new Date(chatOccurredAt(b) ?? 0).getTime())
+    .map(row => {
+      const page = isPageChatRow(row);
+      return {
+        id: row.id,
+        text: chatText(row), message_text: chatText(row), direction: page ? "outbound" : "inbound",
+        senderType: page ? "page" : "customer", senderName: text(row.sender_name ?? row.customer_name), side: page ? "right" : "left",
+        occurredAt: chatOccurredAt(row), attachmentsJson: JSON.stringify(row.attachments_json ?? row.attachments_raw ?? row.attachment_urls ?? []), imageUrls: row.image_urls ?? [],
+      };
+    });
+}
+
 export async function fetchParcelMappingQueue(input: { status: "all" | "sent"; limit: number }) {
   // These are quoted PostgreSQL relation names; keep the space after the emoji.
   // n8n owns the pipeline mutations. This room only reads the queue and history.
