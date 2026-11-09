@@ -141,14 +141,15 @@ function businessInboxUrl(row: Record<string, any>) {
 // ถ้าจะเปลี่ยนพื้นหลัง/ระยะห่าง/ขนาดหน้า ให้แก้ className ในส่วนนี้
 // ⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘
 export default function OrderControl() {
-  const [search, setSearch] = useState("");
+  const initialSearch = new URLSearchParams(window.location.search).get("search") ?? "";
+  const [search, setSearch] = useState(initialSearch);
   const [fromDate, setFromDate] = useState("");
   const [untilDate, setUntilDate] = useState("");
   const [pageFilter, setPageFilter] = useState("ทั้งหมด");
   const [selectedKey, setSelectedKey] = useState("");
   const [clock, setClock] = useState(() => new Date());
   const [copied, setCopied] = useState(false);
-  const [searchPanelOpen, setSearchPanelOpen] = useState(false);
+  const [searchPanelOpen, setSearchPanelOpen] = useState(Boolean(initialSearch));
   const [trackingCopied, setTrackingCopied] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const trackingInput = splitTrackingInput(search);
