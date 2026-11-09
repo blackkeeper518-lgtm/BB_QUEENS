@@ -152,8 +152,6 @@ select
   h.product_mapping_status,
   h.mapping_status,
   h.telegram_message_for_send_final,
-  h.customer_change_summary,
-  h.raw_text,
   h.recipient_id,
   h.expected_cod,
   h.telegram_bill_header

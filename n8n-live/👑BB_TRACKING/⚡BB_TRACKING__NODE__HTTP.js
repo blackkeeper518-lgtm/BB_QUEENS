@@ -3,7 +3,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://efieodrwkmpcxftnlaqx.supabase.co/rest/v1/🏹HUNTER_xXx_TARGET?on_conflict=upsert_key",
+        "url": "https://efieodrwkmpcxftnlaqx.supabase.co/rest/v1/🧿BB_xXx_ORDERCONTROL?on_conflict=upsert_key",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -41,13 +41,13 @@
           "timeout": 120000
         }
       },
-      "id": "b8e026af-04ff-489e-9676-e061f0bf74b6",
-      "name": "🏹HUNTER_xXx_TARGET",
+      "id": "161ee7ca-c3f4-4912-9a20-a9222ff77186",
+      "name": "🧿BB_xXx_ORDERCONTROL2",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -6944,
-        7296
+        -6768,
+        10656
       ],
       "retryOnFail": false,
       "alwaysOutputData": false,

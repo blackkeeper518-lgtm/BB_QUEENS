@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Sticky Note</title>
+    
+    <!-- [CSS] ส่วนตกแต่งสไตล์ดาร์กโทน/นีออน เหมือนระบบหลังบ้านของคุณ -->
+    <style>
+        body {
+            background-color: #0b0514; /* พื้นหลังหน้าจอสีเข้ม */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-image: radial-gradient(circle, #1a0b2e 10%, #0b0514 90%);
+        }
+
+        /* ตัวการ์ดโพสต์อิทสไตล์ดาร์กโทน */
+        .cyber-postit {
+            position: absolute;
+            left: 100px;
+            top: 100px;
+            width: 300px;
+            height: 220px;
+            background: rgba(20, 10, 30, 0.75); /* ม่วงเข้มโปร่งแสง */
+            backdrop-filter: blur(12px); /* กระจกเบลอ */
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 0, 128, 0.4); /* ขอบชมพูนีออน */
+            border-radius: 12px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 
+                        0 0 15px rgba(255, 0, 128, 0.2); /* ไฟเรืองแสง */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: box-shadow 0.3s, border-color 0.3s;
+            cursor: default;
+        }
+
+        /* เอฟเฟกต์ตอนคลิกพิมพ์ (เปลี่ยนเป็นฟ้านีออน) */
+        .cyber-postit:focus-within {
+            border-color: #00ffff;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 
+                        0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        /* ส่วนหัวของการ์ด (สำหรับคลิกลากย้าย) */
+        .card-header {
+            background: rgba(35, 15, 50, 0.85);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: move; /* เปลี่ยนลูกศรเมาส์เป็นรูปสี่แฉกแสดงว่าลากได้ */
+            user-select: none;
+        }
+
+        /* จุดกลมๆ นีออน */
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: #ff0080;
+            box-shadow: 0 0 8px #ff0080;
+        }
+
+        .card-title {
+            color: #cda4de;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        /* ปุ่มปิด */
+        .close-btn {
+            background: none;
+            border: none;
+            color: #ff0080;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .close-btn:hover {
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        /* ช่องเขียนข้อความ */
+        .card-body {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            padding: 14px;
+            color: #ffffff;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        /* ปรับแต่ง Scrollbar */
+        .card-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .card-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 0, 128, 0.3);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- [HTML] โครงสร้างตัวการ์ดโพสต์อิท -->
+    <div class="cyber-postit" id="myPostIt">
+        <div class="card-header" id="myPostItHeader">
+            <span class="dot"></span>
+            <span class="card-title">STICKY NOTE // CONTROL</span>
+            <button class="close-btn" onclick="document.getElementById('myPostIt').style.display='none'">&times;</button>
+        </div>
+        <textarea class="card-body" placeholder="พิมพ์ข้อความบันทุกลงในการ์ดของคุณที่นี่..."></textarea>
+    </div>
+
+    <!-- [JavaScript] ระบบคำนวณพิกัดเพื่อให้เมาส์คลิกลาก-วางการ์ดได้ลื่นๆ -->
+    <script>
+        dragElement(document.getElementById("myPostIt"));
+
+        function dragElement(elmnt) {
+            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            if (document.getElementById(elmnt.id + "Header")) {
+                // ถ้ามีส่วนหัว ให้ใช้ส่วนหัวในการลาก
+                document.getElementById(elmnt.id + "Header").onmousedown = dragMouseDown;
+            } else {
+                // ถ้าไม่มี ให้ลากจากตรงไหนของตัวการ์ดก็ได้
+                elmnt.onmousedown = dragMouseDown;
+            }
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                // ตรวจสอบว่าไม่ได้กดโดนปุ่มปิดหรือช่องพิมพ์
+                if (e.target.className === "close-btn" || e.target.className === "card-body") return;
+                
+                e.preventDefault();
+                // เก็บตำแหน่งพิกัดเมาส์ตอนเริ่มต้นคลิก
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                // เรียกใช้ฟังก์ชันตอนขยับเมาส์
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // คำนวณระยะทางที่เมาส์ขยับไป
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // ตั้งค่าตำแหน่งใหม่ให้กับตัวการ์ด
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                // หยุดการลากเมื่อปล่อยเมาส์
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+    </script>
+
+</body>
+</html>

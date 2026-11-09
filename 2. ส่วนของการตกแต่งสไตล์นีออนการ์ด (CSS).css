@@ -1,0 +1,89 @@
+/* ตัวการ์ดโพสต์อิทสไตล์ดาร์กโทน */
+.cyber-postit {
+  position: absolute;
+  width: 280px;
+  height: 200px;
+  background: rgba(20, 10, 30, 0.65); /* พื้นหลังม่วงเข้มโปร่งแสงแบบในรูป */
+  backdrop-filter: blur(10px); /* เอฟเฟกต์กระจกเบลอ */
+  border: 1px solid rgba(255, 0, 128, 0.4); /* ขอบสีชมพูนีออนบางๆ */
+  border-radius: 12px; /* มุมโค้งมนกำลังดี */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), 
+              0 0 15px rgba(255, 0, 128, 0.2); /* เงาเรืองแสงสีชมพู */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: box-shadow 0.3s ease;
+}
+
+/* เอฟเฟกต์ตอนเอาเมาส์ไปชี้หรือคลิก (ให้ไฟนีออนสว่างขึ้น) */
+.cyber-postit:focus-within {
+  border-color: #00ffff; /* เปลี่ยนขอบเป็นสีฟ้านีออนเมื่อกำลังพิมพ์ */
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+/* ส่วนหัวของการ์ด */
+.card-header {
+  background: rgba(30, 15, 45, 0.8);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-title {
+  color: #cda4de; /* สีตัวอักษรม่วงอ่อนพาสเทล */
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  flex-grow: 1;
+  margin-left: 8px;
+}
+
+/* จุดกลมๆ นีออนแสดงสถานะแบบในเว็บของคุณ */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.pink-dot {
+  background-color: #ff0080;
+  box-shadow: 0 0 8px #ff0080;
+}
+
+/* ปุ่มปิดการ์ด */
+.close-btn {
+  background: none;
+  border: none;
+  color: #ff0080;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+}
+.close-btn:hover {
+  color: #00ffff;
+  text-shadow: 0 0 5px #00ffff;
+}
+
+/* ช่องเขียนข้อความ */
+.card-body {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  padding: 12px;
+  color: #ffffff; /* ตัวหนังสือสีขาวให้อ่านง่าย */
+  font-size: 14px;
+  resize: none;
+  outline: none;
+}
+
+/* ปรับแต่ง Scrollbar ของโพสต์อิทให้เข้ากับธีม */
+.card-body::-webkit-scrollbar {
+  width: 6px;
+}
+.card-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 0, 128, 0.3);
+  border-radius: 3px;
+}
