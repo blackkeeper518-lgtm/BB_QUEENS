@@ -1,0 +1,79 @@
+// n8n Code node
+// Mode: Run Once for All Items
+// ชื่อแนะนำ: 📣 PRE-SEND LOCK · PARCEL (WITH ANTI-LEAK FILTER)
+// วางก่อน 👣 LIMBO JUNCTION1 (Facebook API)
+//
+// หน้าที่:
+// - ทำลาย/สอยข้อมูล (Filter Out) ตัวที่เคยปั๊มหัว 📌📣 หรือแอบหลุดมาซ้ำ ไม่ให้วิ่งไปหา Facebook
+// - ไม่คำนวณอายุแชท / ไม่แตะ parcel_status_emoji
+// - เตรียมค่า lock 📣 ให้ Supabase node ถัดไปเขียนลง parcels จริง
+// - อัปเดตและสลับตำแหน่งหัวข้อความในเฟสและดาร์กไซด์ให้เป็น 📌📣 แจ้งเลขพัสดุจัดส่ง
+//
+function clean(value) {
+  return String(value ?? '').trim();
+}
+
+// 🎯 ขั้นตอนที่ 1: สอยและคัดออก (Filter) พวกที่เคยมีหัวข้อความ 📌📣 ออกไปก่อน ไม่ให้หลุดไปต่อ
+const filteredItems = $input.all().filter((item) => {
+  const row = item.json ?? {};
+  const fbMsg = String(row.facebook_tracking_message || '');
+  const dsMsg = String(row.drakside_tracking_message || '');
+
+  // ถ้าระบบตรวจเจอว่ามี "📌📣 แจ้งเลขพัสดุจัดส่ง" หรือ "📌📣" อยู่ในข้อความแล้ว...
+  // สั่งส่งค่า false เพื่อ "ลบทิ้ง" (ลบออกจาก Array ไม่ให้เข้า Node ถัดไป)
+  if (
+    fbMsg.includes('📌📣') || 
+    dsMsg.includes('📌📣') ||
+    fbMsg.includes('📌📣 แจ้งเลขพัสดุจัดส่ง') ||
+    dsMsg.includes('📌📣 แจ้งเลขพัสดุจัดส่ง')
+  ) {
+    return false; // สังหารทิ้ง! คัดออกจากรายชื่อจัดส่งรอบนี้
+  }
+  
+  return true; // ตัวที่เคลียร์ใส ไม่มีรอยปั๊มซ้ำ ให้ผ่านไปได้
+});
+
+// 🎯 ขั้นตอนที่ 2: นำข้อมูลที่เหลือมาประมวลผลต่อตามปกติ
+return filteredItems.map((item) => {
+  const row = item.json ?? {};
+  
+  let fbMsg = row.facebook_tracking_message || '';
+  let dsMsg = row.drakside_tracking_message || '';
+  
+  // ทำการสลับและเพิ่มอีโมจิ 📌 ให้กลายเป็น 📌📣 ตรงหัวข้อความสำหรับออเดอร์ใหม่ที่ผ่านทางมา
+  if (fbMsg.includes('📌 แจ้งเลขพัสดุจัดส่ง')) {
+    fbMsg = fbMsg.replace('📌 แจ้งเลขพัสดุจัดส่ง', '📌📣 แจ้งเลขพัสดุจัดส่ง');
+  }
+  if (dsMsg.includes('📌 แจ้งเลขพัสดุจัดส่ง')) {
+    dsMsg = dsMsg.replace('📌 แจ้งเลขพัสดุจัดส่ง', '📌📣 แจ้งเลขพัสดุจัดส่ง');
+  }
+
+  return {
+    json: {
+      ...row,
+
+      // ข้อความที่ถูกปั๊มหัวใหม่เรียบร้อยแล้ว
+      facebook_tracking_message: fbMsg,
+      drakside_tracking_message: dsMsg,
+
+      // สถานะล็อกในฐานข้อมูล
+      pre_send_lock: '📣',
+      pre_send_lock_status: '📣',
+      pre_send_lock_at: new Date().toISOString(),
+
+      // สถานะที่ต้องส่งไปเขียนใน parcels
+      parcel_status_emoji: '🔥SENT',
+
+      // marker ที่ต้องอยู่ในข้อความที่ลูกค้าเห็นจริง
+      tracking_message_marker: '📌📣',
+      tracking_message_marker_text: '📌📣 แจ้งเลขพัสดุจัดส่ง',
+
+      parcel_row_id: row.parcel_row_id || row.id || null,
+      lock_match_phone: clean(
+        row.phone ||
+        row.extracted_phone ||
+        row.phone_number
+      )
+    }
+  };
+});
