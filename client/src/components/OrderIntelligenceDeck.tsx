@@ -43,11 +43,11 @@ export default function OrderIntelligenceDeck({ open, location, surfaceLabel, on
     staleTime: 15_000,
     queryFn: async () => {
       const [orderResult, parcelResult, chatResult, blackboxResult, changeResult] = await Promise.all([
-        readCanonicalOrders(term),
-        pureTracking ? readParcelByTrackingNumber(pureTracking) : readParcelMappingQueue("all", 300),
-        readChatThreads(),
-        readBlackboxRoom(term),
-        readCloseJobCases(),
+        readCanonicalOrders(term).catch(() => ({ orders: [] })),
+        (pureTracking ? readParcelByTrackingNumber(pureTracking) : readParcelMappingQueue("all", 300)).catch(() => []),
+        readChatThreads().catch(() => []),
+        readBlackboxRoom(term).catch(() => []),
+        readCloseJobCases().catch(() => []),
       ]);
       const normalizedTerm = term.toLowerCase();
       const phoneTerm = phoneDigits(term);

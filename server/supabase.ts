@@ -127,10 +127,10 @@ function isLikelyCodOrder(textValue: string) {
   if (!value || /(?:cod|เก็บเงินปลายทาง).{0,18}(?:ไหม|มั้ย|หรือเปล่า)|(?:รับ|มีบริการ).{0,18}cod/i.test(value)) return false;
   const hasAmount = /(?:\bcod\b|ยอด\s*(?:รวม\s*)?(?:cod|เก็บเงินปลายทาง)|ยอดเก็บเงินปลายทาง)\s*[:：=()]?\s*[0-9๐-๙]{2,6}/i.test(value);
   if (!hasAmount) return false;
-  const hasPhone = /(?:เบอร์|โทร(?:ศัพท์)?|📱)[^0-9๐-๙]{0,16}(?:0[0-9๐-๙]{9})/i.test(value);
+  const hasPhone = /(?:เบอร์|โทร(?:ศัพท์)?|📱)[^0-9๐-๙]{0,16}(?:0[0-9๐-๙]{9})/i.test(value) || /(?:^|[^0-9๐-๙])0[0-9๐-๙]{9}(?:$|[^0-9๐-๙])/i.test(value);
   const hasAddress = /(?:ที่อยู่|ต\.|ตำบล|อ\.|อำเภอ|จ\.|จังหวัด|รหัสไปรษณีย์)/i.test(value);
   const hasProduct = /(?:รายการสินค้า|สินค้า|คอต|x\s*[0-9๐-๙]+)/i.test(value);
-  const hasOrderSignature = /#BB_ORDER|ปิดยอดสำเร็จ|สรุปรายการสั่งซื้อ|เลขที่ออเดอร์|เลขพัสดุจัดส่ง|ยอดเก็บเงินปลายทาง/i.test(value);
+  const hasOrderSignature = /#[A-Z0-9_]*(?:ORDER|ORDERS)(?:✅)?/i.test(value) || /ปิดยอดสำเร็จ|สรุปรายการสั่งซื้อ|เลขที่ออเดอร์|เลขพัสดุจัดส่ง|ยอดเก็บเงินปลายทาง/i.test(value);
   return hasOrderSignature || (hasPhone && (hasAddress || hasProduct));
 }
 
@@ -168,7 +168,7 @@ export async function fetchChatThreadsFromServer() {
       customerId: text(row.customer_id ?? row.recipient_id ?? row.sender_id), pageName: page,
       customerName: text(row.customer_name ?? row.sender_name) ?? "ลูกค้า", latestAt: occurredAt,
       latestOrderNumber: "", preview: rowText, unread: false, messageCount: 0, customerMessages: 0,
-      pageMessages: 0, orderSignals: 0, codSignalCount: 0, todayCodSignalCount: 0, codTexts: [], todayCodTexts: [], snippets: [], chatTimeline: [], orders: [], orderCount: 0, searchText: "", todayOrderCount: 0, todayCodOrderCount: 0, codTodayActive: false,
+      pageMessages: 0, orderSignals: 0, codSignalCount: 0, todayCodSignalCount: 0, codTexts: [], todayCodTexts: [], allTexts: [], todayTexts: [], snippets: [], chatTimeline: [], orders: [], orderCount: 0, searchText: "", todayOrderCount: 0, todayCodOrderCount: 0, codTodayActive: false,
     };
     current.latestAt = current.latestAt || occurredAt;
     current.preview ||= rowText;
@@ -179,10 +179,12 @@ export async function fetchChatThreadsFromServer() {
     current.messageCount += 1;
     const pageMessage = isPageChatRow(row);
     if (pageMessage) current.pageMessages += 1; else current.customerMessages += 1;
+    current.allTexts.push(rowText);
+    const rowDateBangkok = occurredAt ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date(occurredAt)) : "";
+    if (rowDateBangkok === todayBangkok) current.todayTexts.push(rowText);
     const hasCodKeyword = /\bcod\b|ยอด\s*(?:รวม\s*)?(?:cod|เก็บเงินปลายทาง)|เก็บเงินปลายทาง/i.test(rowText);
     if (hasCodKeyword) {
       current.codTexts.push(rowText);
-      const rowDateBangkok = occurredAt ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date(occurredAt)) : "";
       if (rowDateBangkok === todayBangkok) current.todayCodTexts.push(rowText);
     }
     current.chatTimeline.push(`${pageMessage ? "[เพจ]" : "[ลูกค้า]"} ${rowText}`.trim());
@@ -191,8 +193,8 @@ export async function fetchChatThreadsFromServer() {
     map.set(key, current);
   }
   for (const [key, room] of map) {
-    room.codSignalCount = isLikelyCodOrder(room.codTexts.join("\n")) ? 1 : 0;
-    room.todayCodSignalCount = isLikelyCodOrder(room.todayCodTexts.join("\n")) ? 1 : 0;
+    room.codSignalCount = isLikelyCodOrder(room.allTexts.join("\n")) ? 1 : 0;
+    room.todayCodSignalCount = isLikelyCodOrder(room.todayTexts.join("\n")) ? 1 : 0;
     room.codTodayActive = room.todayCodSignalCount > 0;
   }
   return Array.from(map.values()).sort((a, b) => new Date(b.latestAt || 0).getTime() - new Date(a.latestAt || 0).getTime());
