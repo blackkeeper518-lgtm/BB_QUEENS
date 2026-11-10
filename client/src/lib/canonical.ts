@@ -307,9 +307,7 @@ const HERMES_WEB_ORDER_COLUMNS = [
 
 // HERMES_ARCHIVE stores the three aliased view fields with their original names.
 const HERMES_DIRECT_ORDER_COLUMNS = HERMES_WEB_ORDER_COLUMNS
-  .replace("currentThreadTotalBills", "currentthreadtotalbills")
-  .replace("balloonNotice", "balloonnotice")
-  .replace("sniperAuthorClass", "sniperauthorclass");
+  .replace(/order_time_display/g, "order_time_display");
 
 // Only fields used by TelegramDeliveryRoom; avoid returning all 330 view columns.
 const TELEGRAM_WEB_ORDER_COLUMNS = [
