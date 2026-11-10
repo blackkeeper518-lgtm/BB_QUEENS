@@ -307,9 +307,7 @@ const HERMES_WEB_ORDER_COLUMNS = [
 
 // HERMES_ARCHIVE stores the three aliased view fields with their original names.
 const HERMES_DIRECT_ORDER_COLUMNS = HERMES_WEB_ORDER_COLUMNS
-  .replace("currentThreadTotalBills", "currentthreadtotalbills")
-  .replace("balloonNotice", "balloonnotice")
-  .replace("sniperAuthorClass", "sniperauthorclass");
+  .replace(/order_time_display/g, "order_time_display");
 
 // Only fields used by TelegramDeliveryRoom; avoid returning all 330 view columns.
 const TELEGRAM_WEB_ORDER_COLUMNS = [
@@ -689,7 +687,7 @@ export async function saveCloseJobCaseFields(input: { caseId: string; branch: st
 export async function readParcelMappingQueue(status: "all" | "sent" = "all", limit = 300) {
   const api = getSupabase("parcel");
   if (!api) fail({ message: "ยังไม่ได้เชื่อม Tracking & Messenger: ไปที่ /secret-gallery แล้วบันทึก URL กับ Anon/Publishable Key" });
-  const safeLimit = Math.max(1, Math.min(limit, 500));
+  const safeLimit = Math.max(1, Math.min(limit, 5000));
   const activeData = status === "sent" ? { data: [], error: null } : (await api.from("🦅ROGUE_xXx_SHIPPINGz").select("*").limit(safeLimit));
   if ("error" in activeData && activeData.error) fail(activeData.error);
   const sent = status === "all" || status === "sent" ? await api.from("📓DEAD_xXx_NOTE").select("*").limit(safeLimit) : { data: [], error: null };

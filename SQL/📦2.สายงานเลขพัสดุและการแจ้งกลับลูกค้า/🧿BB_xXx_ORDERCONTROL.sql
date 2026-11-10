@@ -1,4 +1,4 @@
-create table if not exists public."🧿BB_xXx_ORDERCONTROL" (
+create table if not exists public."🧿ST_xXx_ORDERCONTROL" (
   upsert_key text not null,
   page_id text not null,
   "threadId" text null,
@@ -106,16 +106,16 @@ create table if not exists public."🧿BB_xXx_ORDERCONTROL" (
   "sendFacebookRoute" text null,
   route_source text null,
   signature_status text null,
-  constraint "🧿BB_xXx_ORDERCONTROL_pkey" primary key (upsert_key),
+  constraint "🧿ST_xXx_ORDERCONTROL_pkey" primary key (upsert_key),
   constraint ordercontrol_message_id_key unique (message_id)
 ) TABLESPACE pg_default;
 
-alter table public."🧿BB_xXx_ORDERCONTROL"
+alter table public."🧿ST_xXx_ORDERCONTROL"
   add column if not exists fb_tracking_message_for_web text,
   add column if not exists ds_tracking_message_for_web text;
 
 -- One-time safe backfill for the web reader; never overwrite an existing web value.
-update public."🧿BB_xXx_ORDERCONTROL"
+update public."🧿ST_xXx_ORDERCONTROL"
 set
   fb_tracking_message_for_web = coalesce(fb_tracking_message_for_web, facebook_tracking_message),
   ds_tracking_message_for_web = coalesce(ds_tracking_message_for_web, drakside_tracking_message)
@@ -123,7 +123,7 @@ where fb_tracking_message_for_web is null
    or ds_tracking_message_for_web is null;
 
 create index IF not exists ordercontrol_phone_digits_idx
-  on public."🧿BB_xXx_ORDERCONTROL" using btree (
+  on public."🧿ST_xXx_ORDERCONTROL" using btree (
     (regexp_replace(coalesce(phone, ''::text), '[^0-9]'::text, ''::text, 'g'::text))
   ) TABLESPACE pg_default
 where
@@ -168,7 +168,7 @@ join lateral (
     o.fb_tracking_message_for_web,
     o.ds_tracking_message_for_web,
     o.upsert_key
-  from public."🧿BB_xXx_ORDERCONTROL" o
+  from public."🧿ST_xXx_ORDERCONTROL" o
   where nullif(btrim(regexp_replace(coalesce(o.phone, ''), '[^0-9]', '', 'g')), '') is not null
     and nullif(btrim(regexp_replace(coalesce(p.phone_number, ''), '[^0-9]', '', 'g')), '') is not null
     and regexp_replace(coalesce(o.phone, ''), '[^0-9]', '', 'g')
@@ -255,7 +255,7 @@ select
   ord.chat_link_key,
   ord.dedupe_key
 from public."🔮SHADOW_xXx_RECALL" pcl
-join public."🧿BB_xXx_ORDERCONTROL" ord
+join public."🧿ST_xXx_ORDERCONTROL" ord
   on ord.upsert_key = pcl.upsert_key
 where nullif(btrim(pcl.tracking_number), '') is not null
   and upper(btrim(coalesce(pcl.delivery_status, ''))) not in (
@@ -355,7 +355,7 @@ select
 from public.parcels parcel
 left join lateral (
   select o.*
-  from public."🧿BB_xXx_ORDERCONTROL" o
+  from public."🧿ST_xXx_ORDERCONTROL" o
   where nullif(btrim(regexp_replace(coalesce(o.phone, ''), '[^0-9]', '', 'g')), '') is not null
     and nullif(btrim(regexp_replace(coalesce(parcel.phone_number, ''), '[^0-9]', '', 'g')), '') is not null
     and regexp_replace(coalesce(o.phone, ''), '[^0-9]', '', 'g')

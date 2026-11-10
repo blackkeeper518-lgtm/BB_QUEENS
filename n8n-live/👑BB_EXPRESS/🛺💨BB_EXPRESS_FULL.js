@@ -5,7 +5,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -12944,
+        -16000,
         6144
       ],
       "id": "b94576bd-7399-4b0f-bbb8-c9bb4883bc1a",
@@ -25,7 +25,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -14736,
+        -17792,
         5712
       ],
       "id": "0612a60f-86be-4e60-a968-b28369e56538",
@@ -52,7 +52,7 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -14960,
+        -18016,
         5712
       ],
       "id": "558526e1-e309-4081-b62b-3b147c07f241",
@@ -109,7 +109,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -12944,
+        -16000,
         5632
       ],
       "id": "b1b97e48-0653-4556-a794-745b5447c994",
@@ -173,7 +173,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -13168,
+        -16224,
         5952
       ],
       "id": "6b9ebcdc-187a-4bcb-8630-ad439470d4da",
@@ -237,7 +237,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -13168,
+        -16224,
         6144
       ],
       "id": "d8e439e9-0843-4eac-a6eb-ac31000f2e88",
@@ -301,7 +301,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -13168,
+        -16224,
         6336
       ],
       "id": "6b122f1a-76e4-4043-8a1a-1b621e64d4d3",
@@ -375,7 +375,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -13616,
+        -16672,
         5344
       ],
       "id": "d999dbb5-bfdb-4512-9642-c11ac9422b6f",
@@ -432,7 +432,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -13392,
+        -16448,
         5248
       ],
       "id": "a34c8765-9c38-457d-81fe-7fb5a2ac1fec",
@@ -496,7 +496,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -13392,
+        -16448,
         5440
       ],
       "id": "c2dfdece-2d2c-4e27-861b-aca570c33f4d",
@@ -515,7 +515,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -13168,
+        -16224,
         5344
       ],
       "id": "6ee6636c-3983-4431-991b-a50d3de012da",
@@ -529,7 +529,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -14064,
+        -17120,
         5712
       ],
       "id": "45f8bf41-dd92-474c-a995-45a663eacf40",
@@ -646,7 +646,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -13616,
+        -16672,
         6016
       ],
       "id": "bf707e91-83bd-4ea4-8f26-4e9cf5847637",
@@ -660,7 +660,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -14512,
+        -17568,
         5712
       ],
       "id": "ef76c5ad-a83c-4a46-a857-d6b655735a89",
@@ -675,7 +675,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -13392,
+        -16448,
         5712
       ],
       "id": "14c7d457-23e2-4e28-821e-6cbb623511ac",
@@ -743,7 +743,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -13840,
+        -16896,
         5712
       ],
       "id": "fa419897-d5d9-44b8-b134-53541f104eea",
@@ -762,7 +762,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -13392,
+        -16448,
         6336
       ],
       "id": "8397a601-f704-45b4-aab7-7ad9724d70f9",
@@ -788,7 +788,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -13392,
+        -16448,
         6144
       ],
       "id": "68c1387c-d1a4-4a5c-97c1-4297d055afe2",
@@ -814,7 +814,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -13392,
+        -16448,
         5952
       ],
       "id": "a4f0aa14-caf4-47e5-ac3f-8e416dfba464",
@@ -840,7 +840,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -13168,
+        -16224,
         5632
       ],
       "id": "735570e0-7b77-4ba5-a0c9-df4ccb62deb2",
@@ -859,7 +859,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -12720,
+        -15776,
         5712
       ],
       "id": "87bb4430-5c0d-425f-a3aa-0fb03aff9373",
@@ -874,11 +874,25 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -14288,
+        -17344,
         5712
       ],
       "id": "87a9c822-fb85-49f3-ae76-63329f611205",
       "name": "🧿END_DATETIME_BKK1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ======================================================= //\n// 🛡️ THE GOD GATEKEEPER : CUTOFF 14:00 YESTERDAY          //\n// ======================================================= //\n\nconst tempFilteredItems = [];\n\n// 1. เวลาปัจจุบันตั้งต้น (อิงเวลาไทยปัจจุบัน)\nconst now = new Date();\nconst nowUtcMs = now.getTime();\nconst thaiNow = new Date(nowUtcMs + (7 * 60 * 60 * 1000));\n\n// 2. คำนวณหาเวลา \"14:00:00 ของเมื่อวาน\" (14:00 BKK Cutoff)\nconst yesterdayCutoff = new Date(thaiNow);\nyesterdayCutoff.setUTCDate(yesterdayCutoff.getUTCDate() - 0);\nyesterdayCutoff.setUTCHours(22, 0, 0, 0); // ตั้งเป้าไว้ที่บ่าย 2 โมงเมื่อวาน\n\n// แปลงกลับเป็น UTC Timestamp เพื่อเทียบกับ order_time\nconst minAllowedTime = yesterdayCutoff.getTime() - (7 * 60 * 60 * 1000);\nconst maxAllowedTime = nowUtcMs + (12 * 60 * 60 * 1000); // เผื่ออนาคตไม่เกิน 12 ชม.\n\n// ฟังก์ชันแปลงวันที่ภาษาไทยและ พ.ศ. ให้เป็น Timestamp ที่แม่นยำที่สุด\nfunction parseThaiDateTime(raw) {\n  if (!raw) return null;\n  raw = String(raw).trim();\n  try {\n    if (raw.includes('/')) {\n      const parts = raw.split(' ');\n      const datePart = parts[0];\n      const timePart = parts[1] || '00:00:00';\n      \n      const dateSplits = datePart.split('/');\n      if (dateSplits.length === 3) {\n        let [d, m, y] = dateSplits.map(Number);\n        \n        if (y < 100) {\n          y = y + 2500 - 543; \n        } else if (y > 2400) {\n          y = y - 543; \n        }\n        \n        const timeSplits = timePart.split(':').map(Number);\n        const hour = timeSplits[0] || 0;\n        const minute = timeSplits[1] || 0;\n        const second = timeSplits[2] || 0;\n        \n        return new Date(Date.UTC(y, m - 1, d, hour - 7, minute, second)).getTime();\n      }\n    }\n    \n    const parsed = new Date(raw);\n    return isNaN(parsed.getTime()) ? null : parsed.getTime();\n  } catch {\n    return null;\n  }\n}\n\nfor (const item of items) {\n  const j = item.json || item;\n  const sniperText = j.SNIPER_X_TEXT || \"\";\n  \n  // 1. คัดกรองสัญลักษณ์ขยะหรือข้อความบอทที่ไม่ใช่ออเดอร์จริงออก\n  if (sniperText.includes(\"📌\") || sniperText.includes(\"GRAVEYARD\") || sniperText.toLowerCase().includes(\"black\")) {\n    continue;\n  }\n\n  // 2. ดึงเวลาจากฟิลด์ต่างๆ โดยให้ความสำคัญกับ order_time หรือ order_time_display\n  const rawTimeField = j.order_time_display || j.order_time || \"\";\n  const orderTimestamp = parseThaiDateTime(rawTimeField);\n\n  // ถ้าไม่มีเวลา หรือแปลงไม่ได้ ให้ดีดตกรางทันที\n  if (!orderTimestamp) {\n    continue;\n  }\n\n  // 3. 🛠️ ตรวจสอบความถูกต้องแบบเฉียบขาด (เอาเฉพาะหลังบ่าย 2 เมื่อวานเท่านั้น)\n  if (orderTimestamp < minAllowedTime) {\n    // 🛑 ต่ำกว่าบ่าย 2 เมื่อวาน -> สั่งเด็ดหัวคัดทิ้งทันที ห้ามลอยไปเข้าคิวสะสมในคลัง!\n    continue; \n  } else if (orderTimestamp > maxAllowedTime) {\n    // ❌ ออเดอร์ล้ำอนาคตเกินจริง -> ตัดทิ้งป้องกันระบบรวน\n    continue;\n  } else {\n    // ✅ ออเดอร์สดใหม่ผ่านเกณฑ์ (ตั้งแต่หลังบ่าย 2 เมื่อวานเป็นต้นมา) -> วิ่งเข้าสายหลักปกติ\n    j.is_backlog = false;\n    j.branch_route = 'MAIN_DISPATCH_FLOW';\n    j.life_status = '🏁 NITRO_READY';\n  }\n\n  // แนบ timestamp ไว้สำหรับจัดเรียงลำดับออเดอร์สด\n  tempFilteredItems.push({\n    json: j,\n    timestamp: orderTimestamp\n  });\n}\n\n// 4. 🔄 เรียงลำดับออเดอร์จากเก่าไปใหม่ (FIFO)\ntempFilteredItems.sort((a, b) => a.timestamp - b.timestamp);\n\n// 5. ส่งออกข้อมูลที่ผ่านการตรวจสอบแล้วเฉพาะบิลสดใหม่\nconst output = [];\nfor (const sortedItem of tempFilteredItems) {\n  output.push({ json: sortedItem.json });\n}\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -17824,
+        6160
+      ],
+      "id": "c22caff0-be24-4444-8368-b7b7ddb0ac25",
+      "name": "⏰CUTOFF 14:00 YESTERDAY",
       "disabled": true
     }
   ],
