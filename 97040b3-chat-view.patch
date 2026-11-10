@@ -1,0 +1,396 @@
+From 97040b32f846eec04be5582c95045c72cb4e4d95 Mon Sep 17 00:00:00 2001
+From: DarksideMal2keting <blackkeeper518@gmail.com>
+Date: Tue, 10 Nov 2026 20:02:34 +0000
+Subject: [PATCH] fix: isolate chat view and remove webhook fallback
+
+---
+ client/src/lib/canonical.ts                  | 35 +++-----
+ client/src/lib/chat-to-canonical.ts          |  9 +-
+ server/_core/index.ts                        | 25 ------
+ server/meta.ts                               | 91 +++-----------------
+ server/supabase.ts                           | 47 +++-------
+ sql/chat/002_existing_chat_messages_view.sql | 55 ++++++++++++
+ 6 files changed, 95 insertions(+), 167 deletions(-)
+ create mode 100644 sql/chat/002_existing_chat_messages_view.sql
+
+diff --git a/client/src/lib/canonical.ts b/client/src/lib/canonical.ts
+index 301417f..1426c1b 100644
+--- a/client/src/lib/canonical.ts
++++ b/client/src/lib/canonical.ts
+@@ -41,21 +41,18 @@ function profileKey(_camp: Camp, project: SupabaseProject) {
+ }
+ export function getSupabaseConfig(camp: Camp = getActiveCamp(), project: SupabaseProject = "main"): SupabaseConfig | null {
+   try {
+-    const raw = localStorage.getItem(profileKey(camp, project));
+-    if (raw) {
+-      const value = JSON.parse(raw) as Partial<SupabaseConfig>;
+-      if (value.url && value.anonKey) return { url: value.url.replace(/\/$/, ""), anonKey: value.anonKey, orderTable: project === "main" ? defaultOrderView(camp) : undefined };
+-    }
+-    if (project === "chat" || project === "parcel") {
+-      const fallback = localStorage.getItem(TRACKING_CONFIG_KEY);
+-      if (fallback) {
+-        const value = JSON.parse(fallback) as Partial<SupabaseConfig>;
+-        if (value.url && value.anonKey) return { url: value.url.replace(/\/$/, ""), anonKey: value.anonKey };
++    // Chat is deployment-owned. Never reuse a stale browser profile from an
++    // older Supabase project; only VITE_CHAT_SUPABASE_* may configure it.
++    if (project !== "chat") {
++      const raw = localStorage.getItem(profileKey(camp, project));
++      if (raw) {
++        const value = JSON.parse(raw) as Partial<SupabaseConfig>;
++        if (value.url && value.anonKey) return { url: value.url.replace(/\/$/, ""), anonKey: value.anonKey, orderTable: project === "main" ? defaultOrderView(camp) : undefined };
+       }
+     }
+   } catch { /* invalid local value; try deployment defaults */ }
+-  const url = project === "tracking" ? DEPLOYMENT_TRACKING_URL : project === "chat" ? DEPLOYMENT_CHAT_URL || DEPLOYMENT_TRACKING_URL : project === "parcel" ? DEPLOYMENT_PARCEL_URL || DEPLOYMENT_TRACKING_URL : DEPLOYMENT_SUPABASE_URL;
+-  const anonKey = project === "tracking" ? DEPLOYMENT_TRACKING_ANON_KEY : project === "chat" ? DEPLOYMENT_CHAT_ANON_KEY || DEPLOYMENT_TRACKING_ANON_KEY : project === "parcel" ? DEPLOYMENT_PARCEL_ANON_KEY || DEPLOYMENT_TRACKING_ANON_KEY : DEPLOYMENT_SUPABASE_ANON_KEY;
++  const url = project === "tracking" ? DEPLOYMENT_TRACKING_URL : project === "chat" ? DEPLOYMENT_CHAT_URL : project === "parcel" ? DEPLOYMENT_PARCEL_URL : DEPLOYMENT_SUPABASE_URL;
++  const anonKey = project === "tracking" ? DEPLOYMENT_TRACKING_ANON_KEY : project === "chat" ? DEPLOYMENT_CHAT_ANON_KEY : project === "parcel" ? DEPLOYMENT_PARCEL_ANON_KEY : DEPLOYMENT_SUPABASE_ANON_KEY;
+   return url && anonKey ? { url, anonKey, orderTable: project === "main" ? defaultOrderView(camp) : undefined } : null;
+ }
+ export function saveSupabaseConfig(config: SupabaseConfig, camp: Camp = getActiveCamp(), project: SupabaseProject = "main") {
+@@ -608,17 +605,9 @@ async function readChatRows() {
+   // Read the newest window first. Ascending + limit would permanently return
+   // the oldest rows once a chat table grows beyond the limit.
+   const cutoff = chatHistoryCutoff();
+-  const [customerResult, pageResult] = await Promise.all([
+-    api.from("chat_customer_messages").select("*").gte("occurred_at", cutoff).order("occurred_at", { ascending: false }).limit(10000),
+-    api.from("chat_page_messages").select("*").gte("occurred_at", cutoff).order("occurred_at", { ascending: false }).limit(10000),
+-  ]);
+-  if (customerResult.error) fail(customerResult.error);
+-  const customers = customerResult.data ?? [];
+-  const pages = pageResult.error ? [] : (pageResult.data ?? []);
+-  const rows = [
+-    ...customers.map((r: any) => ({ ...r, _speaker: r.speaker_type || r.speaker || "customer", _side: r.side || "left", _name: r.customer_name || r.sender_name, _text: asText(r.message_text ?? r.message_raw), _thread: r.thread_id || r.conversation_key || r.conversation_id, _occurred: r.occurred_at || r.time || r.created_at, _hasAttachment: hasChatAttachment(r) })),
+-    ...pages.map((r: any) => ({ ...r, _speaker: r.speaker_type || r.speaker || "page", _side: r.side || "right", _name: r.page_sender_name || r.sender_name, _text: asText(r.message_text ?? r.message_raw), _thread: r.thread_id || r.conversation_key || r.conversation_id, _occurred: r.occurred_at || r.time || r.created_at, _hasAttachment: hasChatAttachment(r) })),
+-  ];
++  const { data, error } = await api.from("chat_messages_view").select("*").gte("occurred_at", cutoff).order("occurred_at", { ascending: false }).limit(10000);
++  if (error) fail(error);
++  const rows = (data ?? []).map((r: any) => ({ ...r, _speaker: r.speaker_type || r.speaker, _side: r.side, _name: r.customer_name || r.sender_name, _text: asText(r.message_text ?? r.message_raw), _thread: r.thread_id || r.conversation_id, _occurred: r.occurred_at || r.time || r.created_at, _hasAttachment: hasChatAttachment(r) }));
+   return rows.sort((a, b) => new Date(a._occurred || a.occurred_at || a.synced_at || 0).getTime() - new Date(b._occurred || b.occurred_at || b.synced_at || 0).getTime());
+ }
+ export async function readChatThreads() {
+diff --git a/client/src/lib/chat-to-canonical.ts b/client/src/lib/chat-to-canonical.ts
+index 29b6cec..82557b4 100644
+--- a/client/src/lib/chat-to-canonical.ts
++++ b/client/src/lib/chat-to-canonical.ts
+@@ -25,14 +25,13 @@ function matchItem(raw: string, aliases: Map<string, AnyRow>, masters: AnyRow[])
+ 
+ export async function createCanonicalFromChat(input: { pageId: string; threadId: string; pageName?: string; customerName?: string }): Promise<ChatCanonicalResult> {
+   const api = getSupabase(); if (!api) throw new Error("ยังไม่ได้เชื่อม Supabase");
+-  const [{ data: customers, error: ce }, { data: pages, error: pe }, { data: aliasRows, error: ae }, { data: masters, error: me }] = await Promise.all([
+-    api.from("chat_customer_messages").select("*").eq("page_id", input.pageId).eq("conversation_key", input.threadId).order("occurred_at", { ascending: true }),
+-    api.from("chat_page_messages").select("*").eq("page_id", input.pageId).eq("conversation_key", input.threadId).order("occurred_at", { ascending: true }),
++  const [{ data: messages, error: chatError }, { data: aliasRows, error: ae }, { data: masters, error: me }] = await Promise.all([
++    api.from("chat_messages_view").select("*").eq("page_id", input.pageId).eq("thread_id", input.threadId).order("occurred_at", { ascending: true }),
+     api.from("product_map_master").select("*"),
+     api.from("🛒product_master").select("*")
+   ]);
+-  if (ce) throw ce; if (pe) throw pe; if (ae) throw ae; if (me) throw me;
+-  const rows: AnyRow[] = ([...(customers ?? []).map((r: AnyRow) => ({ ...r, actor: "customer" })), ...(pages ?? []).map((r: AnyRow) => ({ ...r, actor: "page" }))] as AnyRow[]).sort((a, b) => new Date(a.occurred_at ?? a.created_at ?? 0).getTime() - new Date(b.occurred_at ?? b.created_at ?? 0).getTime());
++  if (chatError) throw chatError; if (ae) throw ae; if (me) throw me;
++  const rows: AnyRow[] = (messages ?? []).map((r: AnyRow) => ({ ...r, actor: r.speaker_type === "page" ? "page" : "customer" })).sort((a, b) => new Date(a.occurred_at ?? a.created_at ?? 0).getTime() - new Date(b.occurred_at ?? b.created_at ?? 0).getTime());
+   const fullText = rows.map(r => text(r.message_text ?? r.text)).filter(Boolean).join("\n");
+   const latest = rows.at(-1); const cod = parseCod(fullText); const phone = parsePhone(fullText); const zip = parseZip(fullText); const name = input.customerName || rows.find(r => r.customer_name)?.customer_name || parseName(fullText) || "ไม่ระบุชื่อ"; const address = parseAddress(fullText, zip); const aliases = makeAliasMap(aliasRows ?? []); const masterList = masters ?? [];
+   const rawSegments = extractSegments(fullText); const fallback = rawSegments.length ? rawSegments : (fullText.match(/(?:รายการสินค้า|สินค้า)\s*[:：]?\s*([^\n]+)/i)?.[1] ? [RegExp.$1] : []); const segments = fallback.length ? fallback : [];
+diff --git a/server/_core/index.ts b/server/_core/index.ts
+index e4586ee..c6bc172 100644
+--- a/server/_core/index.ts
++++ b/server/_core/index.ts
+@@ -14,8 +14,6 @@ import { registerStorageProxy } from "./storageProxy";
+ import { appRouter } from "../routers";
+ import { createContext } from "./context";
+ import { serveStatic, setupVite } from "./vite";
+-import { extractMetaMessages, verifyMetaSignature } from "../meta";
+-import { createAuditLog, saveChatMessage } from "../db";
+ 
+ function isPortAvailable(port: number): Promise<boolean> {
+   return new Promise(resolve => {
+@@ -44,29 +42,6 @@ async function startServer() {
+   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+   registerStorageProxy(app);
+   registerOAuthRoutes(app);
+-  app.get("/api/meta/webhook", (req, res) => {
+-    const mode = String(req.query["hub.mode"] ?? "");
+-    const token = String(req.query["hub.verify_token"] ?? "");
+-    const challenge = String(req.query["hub.challenge"] ?? "");
+-    if (mode === "subscribe" && token && token === process.env.META_WEBHOOK_VERIFY_TOKEN) return res.status(200).send(challenge);
+-    return res.sendStatus(403);
+-  });
+-  app.post("/api/meta/webhook", async (req, res) => {
+-    const signature = req.header("x-hub-signature-256");
+-    const rawBody = (req as express.Request & { rawBody?: string }).rawBody ?? JSON.stringify(req.body);
+-    if (!verifyMetaSignature(rawBody, signature)) return res.sendStatus(403);
+-    try {
+-      const events = extractMetaMessages(req.body);
+-      for (const event of events) {
+-        await saveChatMessage({ ...event, senderType: "customer", direction: "inbound" });
+-        await createAuditLog({ action: "message_received", entityType: "chat_message", entityId: event.providerMessageId, pageId: event.pageId, threadId: event.threadId, metadata: { provider: "meta", hasText: Boolean(event.text), attachmentCount: event.attachments?.length ?? 0 } });
+-      }
+-      return res.status(200).send("EVENT_RECEIVED");
+-    } catch (error) {
+-      console.error("[Meta Webhook] ingestion failed:", error instanceof Error ? error.message : "unknown error");
+-      return res.sendStatus(500);
+-    }
+-  });
+   // tRPC API
+   app.use(
+     "/api/trpc",
+diff --git a/server/meta.ts b/server/meta.ts
+index eb4da96..43870d6 100644
+--- a/server/meta.ts
++++ b/server/meta.ts
+@@ -1,60 +1,19 @@
+-import { createHmac, timingSafeEqual } from "node:crypto";
+-
+-export type MetaAttachment = { type: string; url?: string; payload?: Record<string, unknown> };
+-
+-async function pageToken(pageId: string, portalKey?: string) {
+-  // Chat is the primary source. The other lanes are compatibility fallbacks
+-  // because existing Render environment groups may keep the vault in Main or Tracking.
+-  const lanes = [
+-    { name: "CHAT", url: process.env.CHAT_SUPABASE_URL, key: process.env.CHAT_SUPABASE_SERVICE_ROLE_KEY },
+-    { name: "MAIN_ORDER", url: process.env.MAIN_ORDER_SUPABASE_URL || process.env.ORDER_SUPABASE_URL, key: process.env.MAIN_ORDER_SUPABASE_SERVICE_ROLE_KEY || process.env.ORDER_SUPABASE_SERVICE_ROLE_KEY },
+-    { name: "TRACKING", url: process.env.TRACKING_SUPABASE_URL, key: process.env.TRACKING_SUPABASE_SERVICE_ROLE_KEY },
+-    { name: "SUPABASE", url: process.env.SUPABASE_URL, key: process.env.SUPABASE_SERVICE_ROLE_KEY },
+-  ].filter(candidate => candidate.url?.trim() && candidate.key?.trim());
+-  for (const lane of lanes) {
+-    const supabaseUrl = lane.url!.trim().replace(/\/$/, "");
+-    const serviceRoleKey = lane.key!.trim();
+-    const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` };
+-    const queries = [portalKey?.trim(), undefined];
+-    for (const candidatePortalKey of queries) {
+-      const params = new URLSearchParams({ select: "page_id,page_name,access_token,portal_key", page_id: `eq.${pageId}`, limit: "1" });
+-      if (candidatePortalKey) params.set("portal_key", `eq.${candidatePortalKey}`);
+-      const response = await fetch(`${supabaseUrl}/rest/v1/page_tokens_vault?${params}`, { headers });
+-      if (response.ok) {
+-        const rows = await response.json() as Array<Record<string, unknown>>;
+-        const row = rows[0];
+-        if (row) {
+-          const token = row.page_access_token ?? row.access_token ?? row.pageAccessToken ?? row.token;
+-          if (typeof token === "string" && token.trim()) return token.trim();
+-        }
+-        if (!candidatePortalKey) break;
+-      } else if (response.status !== 404) {
+-        throw new Error(`Supabase ${lane.name} page_tokens_vault returned HTTP ${response.status}`);
+-      }
+-    }
+-  }
+-  const configured = process.env.META_PAGES_JSON;
+-  if (configured) {
+-    try {
+-      const pages = JSON.parse(configured) as Array<{ pageId: string; pageAccessToken: string }>;
+-      const page = pages.find(item => item.pageId === pageId);
+-      if (page?.pageAccessToken) return page.pageAccessToken;
+-    } catch { /* Keep the single-page fallback below. */ }
+-  }
+-  if (pageId === process.env.META_PAGE_ID) return process.env.META_PAGE_ACCESS_TOKEN;
+-  return undefined;
+-}
+-
+-export function verifyMetaSignature(rawBody: string, signature: string | undefined) {
+-  const secret = process.env.META_APP_SECRET;
+-  if (!secret || !signature?.startsWith("sha256=")) return false;
+-  const expected = Buffer.from(`sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`);
+-  const received = Buffer.from(signature);
+-  return expected.length === received.length && timingSafeEqual(expected, received);
++async function pageToken(pageId: string) {
++  const supabaseUrl = process.env.CHAT_SUPABASE_URL?.trim().replace(/\/$/, "");
++  const serviceRoleKey = process.env.CHAT_SUPABASE_SERVICE_ROLE_KEY?.trim();
++  if (!supabaseUrl || !serviceRoleKey) throw new Error("Chat Supabase is not configured");
++  const params = new URLSearchParams({ select: "page_id,page_name,access_token", page_id: `eq.${pageId}`, limit: "1" });
++  const response = await fetch(`${supabaseUrl}/rest/v1/page_tokens_vault?${params}`, {
++    headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
++  });
++  if (!response.ok) throw new Error(`Chat Supabase page_tokens_vault returned HTTP ${response.status}`);
++  const rows = await response.json() as Array<Record<string, unknown>>;
++  const token = rows[0]?.access_token;
++  return typeof token === "string" && token.trim() ? token.trim() : undefined;
+ }
+ 
+ export async function sendMetaMessage(input: { pageId: string; portalKey?: string; chatLinkKey?: string; recipientId: string; text?: string; imageUrl?: string; stickerId?: string }) {
+-  const accessToken = await pageToken(input.pageId, input.portalKey);
++  const accessToken = await pageToken(input.pageId);
+   if (!accessToken) throw new Error(`No Meta page token configured for page ${input.pageId}`);
+   const text = input.text?.trim() || "";
+   const imageUrl = input.imageUrl?.trim() || "";
+@@ -91,27 +50,3 @@ export async function sendMetaMessage(input: { pageId: string; portalKey?: strin
+   }
+   return result;
+ }
+-
+-export function extractMetaMessages(body: any) {
+-  const events: Array<{ providerMessageId?: string; pageId: string; threadId: string; senderId: string; text?: string; attachments?: MetaAttachment[]; occurredAt: Date }> = [];
+-  if (body?.object !== "page" && body?.object !== "instagram") return events;
+-  for (const entry of Array.isArray(body.entry) ? body.entry : []) {
+-    const pageId = String(entry.id ?? "");
+-    for (const event of Array.isArray(entry.messaging) ? entry.messaging : []) {
+-      const message = event.message;
+-      if (!message || message.is_echo) continue;
+-      const senderId = String(event.sender?.id ?? "");
+-      if (!pageId || !senderId) continue;
+-      events.push({
+-        providerMessageId: message.mid ? String(message.mid) : undefined,
+-        pageId,
+-        threadId: senderId,
+-        senderId,
+-        text: message.text ? String(message.text) : undefined,
+-        attachments: Array.isArray(message.attachments) ? message.attachments.map((attachment: any) => ({ type: String(attachment.type ?? "file"), url: attachment.payload?.url ? String(attachment.payload.url) : undefined, payload: attachment.payload })) : undefined,
+-        occurredAt: new Date(Number(event.timestamp) || Date.now()),
+-      });
+-    }
+-  }
+-  return events;
+-}
+diff --git a/server/supabase.ts b/server/supabase.ts
+index b795657..5968733 100644
+--- a/server/supabase.ts
++++ b/server/supabase.ts
+@@ -24,10 +24,9 @@ function config(project: SupabaseProject = "main") {
+       : lane === "tracking"
+         ? process.env.TRACKING_SUPABASE_SERVICE_ROLE_KEY
+         : process.env.MAIN_ORDER_SUPABASE_SERVICE_ROLE_KEY || process.env.ORDER_SUPABASE_SERVICE_ROLE_KEY;
+-  // New lanes are additive. Until their Render variables exist, keep the
+-  // existing Tracking connection working without a data or route migration.
+-  const rawUrl = laneUrl?.trim() || (lane === "chat" || lane === "parcel" ? process.env.TRACKING_SUPABASE_URL?.trim() : undefined) || process.env.SUPABASE_URL?.trim();
+-  const key = laneKey?.trim() || (lane === "chat" || lane === "parcel" ? process.env.TRACKING_SUPABASE_SERVICE_ROLE_KEY?.trim() : undefined) || process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
++  // Keep each data lane isolated. Chat must never silently read another project.
++  const rawUrl = laneUrl?.trim();
++  const key = laneKey?.trim();
+   if (!rawUrl || !key) throw new Error(`Supabase ${project} secrets are not configured`);
+   let parsed: URL;
+   try { parsed = new URL(rawUrl); } catch { throw new Error("SUPABASE_URL is not a valid URL"); }
+@@ -67,25 +66,6 @@ export async function recordOutgoingChatMessage(input: {
+   const iso = occurredAt.toISOString();
+   const messageId = input.messageId?.trim() || null;
+   const chatLinkKey = input.chatLinkKey?.trim() || `${input.pageId}_t_${input.threadId}`;
+-  const payload = {
+-    chat_link_key: chatLinkKey,
+-    page_id: input.pageId,
+-    page_name: input.pageName?.trim() || null,
+-    portal_key: input.portalKey?.trim() || null,
+-    thread_id: input.threadId,
+-    recipient_id: input.recipientId,
+-    message_id: messageId,
+-    speaker: "page",
+-    is_sent: true,
+-    time: iso,
+-    occurred_at: iso,
+-    message_time_display: iso,
+-    message_text: input.text?.trim() || null,
+-    page_latest_message: input.text?.trim() || null,
+-    page_message_time_th: iso,
+-    sync_status: "SENT",
+-    dedupe_key: messageId ? `${chatLinkKey}:${messageId}` : `${chatLinkKey}:${iso}`,
+-  };
+   const pageMessagePayload = {
+     chat_link_key: chatLinkKey,
+     page_id: input.pageId,
+@@ -106,12 +86,13 @@ export async function recordOutgoingChatMessage(input: {
+     dedupe_key: messageId ? `${chatLinkKey}:${messageId}` : `${chatLinkKey}:${iso}`,
+   };
+   try {
+-    await supabasePost<Record<string, unknown>[]>("chat_page_messages?on_conflict=dedupe_key", pageMessagePayload, "chat");
++    // The fresh Chat project intentionally has no unique index yet. Insert
++    // normally; do not ask PostgREST to arbitrate on dedupe_key.
++    await supabasePost<Record<string, unknown>[]>("chat_page_messages", pageMessagePayload, "chat");
+   } catch (error) {
+     console.error("[chat] canonical page-message write failed", error);
+   }
+-  const relation = encodeURIComponent("🧿BB_xXx_ORDERCONTROL");
+-  return supabasePost<Record<string, unknown>[]>(relation, payload, "chat");
++  return pageMessagePayload;
+ }
+ 
+ function chatText(row: Record<string, unknown>) {
+@@ -148,11 +129,8 @@ function isPageChatRow(row: Record<string, unknown>) {
+ }
+ 
+ export async function fetchChatThreadsFromServer() {
+-  const [customers, pages] = await Promise.all([
+-    supabaseGet<Record<string, unknown>[]>("chat_customer_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
+-    supabaseGet<Record<string, unknown>[]>("chat_page_messages?select=*&order=occurred_at.desc&limit=10000", "chat"),
+-  ]);
+-  const rows = [...customers, ...pages].sort((a, b) => new Date(chatOccurredAt(b) ?? 0).getTime() - new Date(chatOccurredAt(a) ?? 0).getTime());
++  const rows = (await supabaseGet<Record<string, unknown>[]>("chat_messages_view?select=*&order=occurred_at.desc&limit=10000", "chat"))
++    .sort((a, b) => new Date(chatOccurredAt(b) ?? 0).getTime() - new Date(chatOccurredAt(a) ?? 0).getTime());
+   const todayBangkok = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
+   const map = new Map<string, any>();
+   for (const row of rows) {
+@@ -203,11 +181,8 @@ export async function fetchChatThreadsFromServer() {
+ export async function fetchChatMessagesFromServer(pageId: string, threadId: string) {
+   const pageFilter = encodeURIComponent(pageId);
+   const threadFilter = encodeURIComponent(threadId);
+-  const [customers, pages] = await Promise.all([
+-    supabaseGet<Record<string, unknown>[]>(`chat_customer_messages?select=*&page_id=eq.${pageFilter}&thread_id=eq.${threadFilter}&order=occurred_at.desc&limit=15`, "chat"),
+-    supabaseGet<Record<string, unknown>[]>(`chat_page_messages?select=*&page_id=eq.${pageFilter}&thread_id=eq.${threadFilter}&order=occurred_at.desc&limit=15`, "chat"),
+-  ]);
+-  return [...customers, ...pages]
++  const rows = await supabaseGet<Record<string, unknown>[]>(`chat_messages_view?select=*&page_id=eq.${pageFilter}&thread_id=eq.${threadFilter}&order=occurred_at.desc&limit=15`, "chat");
++  return rows
+     .sort((a, b) => new Date(chatOccurredAt(a) ?? 0).getTime() - new Date(chatOccurredAt(b) ?? 0).getTime())
+     .slice(-15)
+     .map(row => {
+diff --git a/sql/chat/002_existing_chat_messages_view.sql b/sql/chat/002_existing_chat_messages_view.sql
+new file mode 100644
+index 0000000..8246f5a
+--- /dev/null
++++ b/sql/chat/002_existing_chat_messages_view.sql
+@@ -0,0 +1,55 @@
++-- BB CHAT: EXISTING TABLES ONLY
++-- Run this file against the existing Chat Supabase project.
++-- It does not create, alter, delete, or index any source table.
++-- It creates one read View from the two existing message tables.
++-- The two source tables may have different column counts and columns.
++
++do $$
++declare
++  view_columns text;
++  view_sql text;
++begin
++  -- Build a stable text projection from every column present in either table.
++  -- Missing columns on the other side become NULL automatically.
++  select string_agg(
++    format('(to_jsonb(c)->>%L) as %I', x.column_name, x.column_name),
++    ', ' order by x.first_position, x.column_name
++  )
++    into view_columns
++  from (
++    select column_name, min(ordinal_position) as first_position
++    from information_schema.columns
++    where table_schema = 'public'
++      and table_name in ('chat_customer_messages', 'chat_page_messages')
++    group by column_name
++  ) x;
++
++  if view_columns is null then
++    raise exception 'No columns found in chat_customer_messages or chat_page_messages';
++  end if;
++
++  view_sql := format($sql$
++    create or replace view public.chat_messages_view as
++    select %1$s,
++      'customer'::text as view_speaker_type,
++      'inbound'::text as view_direction,
++      'left'::text as view_side,
++      'chat_customer_messages'::text as source_table
++    from public.chat_customer_messages c
++    union all
++    select %2$s,
++      'page'::text as view_speaker_type,
++      'outbound'::text as view_direction,
++      'right'::text as view_side,
++      'chat_page_messages'::text as source_table
++    from public.chat_page_messages p
++  $sql$, view_columns, replace(view_columns, 'to_jsonb(c)', 'to_jsonb(p)'));
++
++  execute view_sql;
++end $$;
++
++grant usage on schema public to anon, authenticated;
++grant select on public.chat_messages_view to anon, authenticated;
++
++-- No Browser access is granted to page_tokens_vault.
++-- Server reads it with CHAT_SUPABASE_SERVICE_ROLE_KEY only.
+-- 
+2.43.0
+
