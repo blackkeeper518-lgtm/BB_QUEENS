@@ -76,9 +76,30 @@ export default function OrderIntelligenceDeck({ open, location, surfaceLabel, on
       return { orders: (orderResult?.orders ?? []).slice(0, 8) as Array<Record<string, any>>, parcels, chats, blackbox, changeHistory };
     },
   });
-  const result = searchQuery.data;
-  const totalMatches = useMemo(() => (result?.orders.length ?? 0) + (result?.parcels.length ?? 0) + (result?.chats.length ?? 0) + (result?.blackbox.length ?? 0) + (result?.changeHistory.length ?? 0), [result]);
 
+const rawResult = searchQuery.data;
+
+const result = useMemo(
+  () => ({
+    orders: Array.isArray(rawResult?.orders) ? rawResult.orders : [],
+    parcels: Array.isArray(rawResult?.parcels) ? rawResult.parcels : [],
+    chats: Array.isArray(rawResult?.chats) ? rawResult.chats : [],
+    blackbox: Array.isArray(rawResult?.blackbox) ? rawResult.blackbox : [],
+    changeHistory: Array.isArray(rawResult?.changeHistory)
+      ? rawResult.changeHistory
+      : [],
+  }),
+  [rawResult]
+);
+const totalMatches = useMemo(
+  () =>
+    result.orders.length +
+    result.parcels.length +
+    result.chats.length +
+    result.blackbox.length +
+    result.changeHistory.length,
+  [result]
+);
   return (
     <>
       {open ? <button type="button" aria-label="ปิดพื้นหลัง Order Intelligence Deck" onClick={onClose} className="fixed inset-0 z-[55] bg-black/25 backdrop-blur-[1px]" /> : null}
