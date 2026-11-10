@@ -320,7 +320,7 @@ for (const item of $input.all()) {
           messaging_tag_required: is24hValid ? "NONE" : "POST_PURCHASE_UPDATE",
           
           message_text : finalText,
-          parcel_status_emoji: parcelStatusEmoji,
+         
           sync_status: "READY_TO_SAVE"
         }
       });
